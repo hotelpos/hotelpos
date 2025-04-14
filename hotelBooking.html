@@ -276,9 +276,10 @@
           row += `<td>£${booking.charges.toFixed(2)}</td>`;
 
           if (booking.status === 'not_checked_in') {
-            row += `<td><button onclick="checkIn(${booking.id})" class="btn btn-primary">Check In</button></td>`;
+            row += `<td><button onclick="checkIn(${booking.id})" class="btn btn-primary">Check In</button>`;
+            row += `<button onclick="showBookingDetails(${booking.id})" class="btn btn-secondary">Action</button></td>`;
           } else {
-            row += `<td><button class="btn btn-secondary">Action</button></td>`;
+            row += `<td><button onclick="showBookingDetails(${booking.id})" class="btn btn-secondary">Details</button></td>`;
           }
         } else {
           row += `<td>-</td><td>-</td><td>-</td><td>-</td>`;
@@ -310,6 +311,11 @@
       `;
       document.body.appendChild(modal);
       document.getElementById('overlay').style.display = 'block';
+    }
+
+    function showBookingDetails(id) {
+      const booking = bookings.find(b => b.id === id);
+      alert(`Booking Details for Room ${booking.room}:\n\nName: ${booking.name}\nArrival: ${booking.arrival}\nDeparture: ${booking.departure}\nGuests: ${booking.guests}\nTab: £${booking.charges}`);
     }
 
     renderBookings();
