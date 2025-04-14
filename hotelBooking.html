@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hotel Booking</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .room-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .room {
+      background: #f0f0f0;
+      padding: 20px;
+      width: 250px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .room h3 {
+      margin: 0;
+      font-size: 1.2em;
+    }
+    .status {
+      font-size: 0.9em;
+      color: #555;
+    }
+    .total-bill {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    .action-btn, .checkout-btn, .new-booking-btn, .confirm-btn {
+      background-color: #28a745;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .action-btn {
+      background-color: #007bff;
+    }
+    .checkout-btn {
+      background-color: #dc3545;
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      border: 2px solid #ccc;
+      display: none;
+      width: 80%;
+      max-width: 500px;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+    .popup h2 {
+      margin-top: 0;
+    }
+    .popup .close-btn, .popup .end-stay-btn {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 5;
+    }
+    input[type="date"], input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closePopup()"></div>
+
+<!-- Main Container -->
+<div class="container">
+
+  <!-- New Booking Button -->
+  <button class="new-booking-btn" onclick="showBookingPopup()">Create New Booking</button>
+
+  <!-- Room List -->
+  <div class="room-list" id="roomList">
+    <!-- Rooms will be dynamically generated here -->
+  </div>
+
+</div>
+
+<!-- New Booking Popup -->
+<div class="popup" id="bookingPopup">
+  <h2>Create New Booking</h2>
+  <label for="firstName">First Name:</label>
+  <input type="text" id="firstName" placeholder="Enter First Name">
+  <label for="lastName">Last Name:</label>
+  <input type="text" id="lastName" placeholder="Enter Last Name">
+  <label for="guests">Number of Guests:</label>
+  <input type="number" id="guests" placeholder="Enter Number of Guests">
+  <label for="arrivalDate">Arrival Date:</label>
+  <input type="date" id="arrivalDate">
+  <label for="departureDate">Departure Date:</label>
+  <input type="date" id="departureDate">
+  <label for="tab">Tab (Deposit £50):</label>
+  <input type="checkbox" id="tab">
+  <button class="action-btn" onclick="findRoom()">Find Room</button>
+  <div id="selectedRoom"></div>
+  <button class="confirm-btn" style="display:none;" onclick="confirmRoom()">Confirm Room Assignment</button>
+  <button class="close-btn" onclick="closePopup()">Close</button>
+</div>
+
+<!-- Booking Details Popup -->
+<div class="popup" id="detailsPopup">
+  <h2>Booking Details</h2>
+  <div id="bookingDetails"></div>
+  <button class="end-stay-btn" onclick="endStay()">End Stay</button>
+  <button class="close-btn" onclick="closePopup()">Close</button>
+</div>
+
+<script>
+  const rooms = [
+    { number: 101, status: 'Available', guest: '', total: 0, tab: 0 },
+    { number: 102, status: 'Available', guest: '', total: 0, tab: 0 },
+    { number: 103, status: 'Available', guest: '', total: 0, tab: 0 },
+    { number: 104, status: 'Available', guest: '', total: 0, tab: 0 },
+    { number: 105, status: 'Available', guest: '', total: 0, tab: 0 },
+    { number: 106, status: 'Available', guest: '', total: 0, tab: 0 },
+  ];
+
+  let currentRoom = null;
+
+  // Function to display rooms
+  function displayRooms() {
+    const roomList = document.getElementById('roomList');
+    roomList.innerHTML = '';
+    rooms.forEach(room => {
+      const roomElement = document.createElement('div');
+      roomElement.classList.add('room');
+      roomElement.innerHTML = `
+        <h3>Room ${room.number}</h3>
+        <p class="status">${room.status}</p>
+        <p>${room.guest ? `Checked in: ${room.guest}` : 'No guest checked in'}</p>
+        <p class="total-bill">Total Bill: £${room.total}</p>
+        <button class="action-btn" onclick="showBookingDetails(${room.number})">
+          ${room.guest ? 'Action' : 'Checkout'}
+        </button>
+      `;
+      roomList.appendChild(roomElement);
+    });
+  }
+
+  // Function to show booking popup
+  function showBookingPopup() {
+    document.getElementById('bookingPopup').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+  }
+
+  // Function to close any popup
+  function closePopup() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('bookingPopup').style.display = 'none';
+    document.getElementById('detailsPopup').style.display = 'none';
+  }
+
+  // Function to find an available room
+  function findRoom() {
+    const arrivalDate = document.getElementById('arrivalDate').value;
+    const departureDate = document.getElementById('departureDate').value;
+    const tab = document.getElementById('tab').checked;
+    
+    const availableRoom = rooms.find(room => room.status === 'Available');
+    
+    if (availableRoom) {
+      currentRoom = availableRoom;
+      currentRoom.status = 'Booked';
+      currentRoom.total = 75 * getNightCount(arrivalDate, departureDate) + (tab ? 50 : 0);
+      currentRoom.tab = tab ? 50 : 0;
+
+      document.getElementById('selectedRoom').innerHTML = `Room ${currentRoom.number} is available. Total: £${currentRoom.total}`;
+      document.querySelector('.confirm-btn').style.display = 'block'; // Show Confirm button
+    } else {
+      alert('No available rooms.');
+    }
+  }
+
+  // Function to get the number of nights between two dates
+  function getNightCount(arrivalDate, departureDate) {
+    const arrival = new Date(arrivalDate);
+    const departure = new Date(departureDate);
+    const timeDiff = departure - arrival;
+    return timeDiff / (1000 * 3600 * 24);
+  }
+
+  // Function to confirm room assignment
+  function confirmRoom() {
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    const guests = document.getElementById('guests').value;
+    const arrivalDate = document.getElementById('arrivalDate').value;
+    const departureDate = document.getElementById('departureDate').value;
+    const tab = document.getElementById('tab').checked;
+    
+    currentRoom.guest = `${firstName} ${lastName}`;
+    currentRoom.arrivalDate = arrivalDate;
+    currentRoom.departureDate = departureDate;
+    currentRoom.guests = guests;
+    
+    // Update the room status and bill with the deposit if necessary
+    currentRoom.total = 75 * getNightCount(arrivalDate, departureDate) + (tab ? 50 : 0);
+    currentRoom.tab = tab ? 50 : 0;
+    
+    alert(`Room ${currentRoom.number} has been confirmed for ${currentRoom.guest}. Total: £${currentRoom.total}`);
+    
+    closePopup();
+    displayRooms();
+  }
+
+  // Function to show booking details in popup
+  function showBookingDetails(roomNumber) {
+    const room = rooms.find(r => r.number === roomNumber);
+    const detailsPopup = document.getElementById('detailsPopup');
+    const bookingDetails = document.getElementById('bookingDetails');
+    if (!room.guest) {
+      alert('No guest checked in.');
+      return;
+    }
+    bookingDetails.innerHTML = `
+      <h3>Room ${room.number}</h3>
+      <p>Guest: ${room.guest}</p>
+      <p>Arrival Date: ${room.arrivalDate}</p>
+      <p>Departure Date: ${room.departureDate}</p>
+      <p>Total Bill: £${room.total}</p>
+    `;
+    detailsPopup.style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+  }
+
+  // Function to end the stay and check out
+  function endStay() {
+    if (currentRoom) {
+      alert(`Room ${currentRoom.number} checkout complete. Total charge: £${currentRoom.total}`);
+      currentRoom.status = 'Available';
+      currentRoom.guest = '';
+      currentRoom.total = 0;
+      displayRooms();
+      closePopup();
+    }
+  }
+
+  // Initialize with room display
+  displayRooms();
+</script>
+
+</body>
+</html>
