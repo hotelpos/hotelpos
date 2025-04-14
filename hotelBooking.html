@@ -274,13 +274,7 @@
           row += `<td><button class="clean-btn ${status}">${status.toUpperCase()}</button></td>`;
           row += `<td>${booking.name}</td>`;
           row += `<td>£${booking.charges.toFixed(2)}</td>`;
-
-          if (booking.status === 'not_checked_in') {
-            row += `<td><button onclick="checkIn(${booking.id})" class="btn btn-primary">Check In</button>`;
-            row += `<button onclick="showBookingDetails(${booking.id})" class="btn btn-secondary">Action</button></td>`;
-          } else {
-            row += `<td><button onclick="showBookingDetails(${booking.id})" class="btn btn-secondary">Details</button></td>`;
-          }
+          row += `<td><button onclick="checkIn(${booking.id})" class="btn btn-primary">Check In</button><button onclick="showBookingDetails(${booking.id})" class="btn btn-secondary">Action</button></td>`;
         } else {
           row += `<td>-</td><td>-</td><td>-</td><td>-</td>`;
         }
@@ -290,32 +284,32 @@
       }
     }
 
-    function checkIn(id) {
+    function showBookingDetails(id) {
       const booking = bookings.find(b => b.id === id);
-      if (!booking.clean) {
-        showCleanModal("Room is not clean. Please clean it before checking in.");
-        return;
-      }
-
-      booking.status = 'checked_in';
-      localStorage.setItem('bookings', JSON.stringify(bookings));
-      renderBookings();
-    }
-
-    function showCleanModal(message) {
       const modal = document.createElement('div');
       modal.className = 'modal';
       modal.innerHTML = `
-        <p>${message}</p>
+        <h3>Booking Details for Room ${booking.room}</h3>
+        <p>Name: ${booking.name}</p>
+        <p>Guests: ${booking.guests}</p>
+        <p>Arrival: ${booking.arrival}</p>
+        <p>Departure: ${booking.departure}</p>
+        <p>Tab: £${booking.charges}</p>
         <button onclick="this.parentElement.remove(); document.getElementById('overlay').style.display='none'" class="btn btn-danger">Close</button>
       `;
       document.body.appendChild(modal);
       document.getElementById('overlay').style.display = 'block';
     }
 
-    function showBookingDetails(id) {
+    function checkIn(id) {
       const booking = bookings.find(b => b.id === id);
-      alert(`Booking Details for Room ${booking.room}:\n\nName: ${booking.name}\nArrival: ${booking.arrival}\nDeparture: ${booking.departure}\nGuests: ${booking.guests}\nTab: £${booking.charges}`);
+      if (!booking.clean) {
+        showCleanModal("Room is not clean. Please clean it before checking in.");
+        return;
+      }
+      booking.status = 'checked_in';
+      localStorage.setItem('bookings', JSON.stringify(bookings));
+      renderBookings();
     }
 
     renderBookings();
