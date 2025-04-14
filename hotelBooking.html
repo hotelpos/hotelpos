@@ -2,291 +2,208 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hotel Booking System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel Booking</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f4f4f4; }
-    .navbar {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 20px; background-color: #222; color: white;
-    }
-    .navbar h1 { margin: 0; font-size: 20px; }
-    .nav-links button, .dropdown-btn {
-      background: #444; color: white; padding: 8px 12px; margin: 0 5px;
-      border: none; border-radius: 4px; cursor: pointer;
-    }
-    .nav-links button:hover, .dropdown-content button:hover { background: #666; }
-    .dropdown {
-      position: relative; display: inline-block;
-    }
-    .dropdown-content {
-      display: none; position: absolute; background-color: white;
-      min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1;
-    }
-    .dropdown-content button {
-      width: 100%; padding: 10px; text-align: left; border: none; background: white; color: black;
-    }
-    .dropdown:hover .dropdown-content { display: block; }
-
-    .container { padding: 20px; }
-    .room-card {
-      background: white; padding: 10px; margin: 10px 0; border-radius: 6px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;
-    }
-    .room-info span { display: block; }
-    .button-green, .button-red, .button-blue {
-      padding: 6px 12px; border: none; border-radius: 4px; color: white; cursor: pointer;
-    }
-    .button-green { background: green; }
-    .button-red { background: red; }
-    .button-blue { background: dodgerblue; }
-
     .modal {
-      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center;
-      z-index: 10;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
     }
     .modal-content {
-      background: white; padding: 20px; border-radius: 6px; width: 400px; position: relative;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      text-align: center;
     }
-    .close { position: absolute; top: 10px; right: 10px; cursor: pointer; }
-
-    .form-row { margin-bottom: 10px; }
-    input[type="text"], input[type="date"], select {
-      width: 100%; padding: 8px; margin-top: 4px; border-radius: 4px; border: 1px solid #ccc;
-    }
-
-    #daySelector { padding: 6px; margin-left: 10px; }
-
-    .modal-popup {
-      padding: 10px 0;
+    .nav-link.dropdown-toggle::after {
+      margin-left: 0.5rem;
     }
   </style>
 </head>
 <body>
-
-  <div class="navbar">
-    <div>
-      <button onclick="location.href='index.html'">Exit</button>
-      <button onclick="location.href='pos.html'">POS</button>
-      <button onclick="location.href='hotelBooking.html'">Hotel Booking</button>
-      <select id="daySelector" onchange="renderBookings()"></select>
-    </div>
-    <div class="dropdown">
-      <button class="dropdown-btn">Admin ⌄</button>
-      <div class="dropdown-content">
-        <button onclick="showPopup('history')">History</button>
-        <button onclick="showPopup('upcoming')">Upcoming</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="container">
-    <button class="button-blue" onclick="showBookingForm()">+ New Booking</button>
-    <div id="roomsContainer"></div>
-  </div>
-
-  <!-- Booking Modal -->
-  <div class="modal" id="bookingModal">
-    <div class="modal-content">
-      <span class="close" onclick="closeBookingForm()">×</span>
-      <h3>New Booking</h3>
-      <div class="form-row">
-        <label>Guest Name:</label>
-        <input type="text" id="guestName" />
-      </div>
-      <div class="form-row" style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-          <label>Room:</label>
-          <select id="roomNumber">
-            <option>101</option><option>102</option><option>103</option>
-            <option>104</option><option>105</option><option>106</option>
-          </select>
-        </div>
-        <div style="flex: 1;">
-          <label>&nbsp;</label>
-          <button style="width: 100%;" onclick="findRoom()">Find Room</button>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Hotel System</a>
+      <div class="d-flex">
+        <input type="date" id="dateSelector" class="form-control me-2" />
+        <a href="index.html" class="btn btn-outline-light me-2">Exit</a>
+        <a href="pos.html" class="btn btn-outline-light me-2">POS</a>
+        <a href="hotelBooking.html" class="btn btn-outline-light me-2">Hotel Booking</a>
+        <div class="dropdown">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">ADMIN</button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" id="viewHistory">History</a></li>
+            <li><a class="dropdown-item" href="#" id="viewUpcoming">Upcoming</a></li>
+          </ul>
         </div>
       </div>
-      <div class="form-row">
-        <label>Arrival Date:</label>
-        <input type="date" id="arrivalDate" />
-      </div>
-      <div class="form-row">
-        <label>Departure Date:</label>
-        <input type="date" id="departureDate" />
-      </div>
-      <div class="form-row">
-        <label><input type="checkbox" id="depositBox" /> Add £50 Tab Deposit</label>
-      </div>
-      <div style="text-align: right;">
-        <button class="button-green" onclick="confirmBooking()">Confirm</button>
-        <button onclick="closeBookingForm()">Cancel</button>
-      </div>
     </div>
+  </nav>
+
+  <div class="container mt-3">
+    <button class="btn btn-primary mb-3" onclick="showBookingForm()">New Booking</button>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Room</th>
+          <th>Status</th>
+          <th>Name</th>
+          <th>Bill</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="bookingTable"></tbody>
+    </table>
   </div>
 
-  <!-- Generic Popup -->
-  <div class="modal" id="popupModal">
+  <!-- New Booking Modal -->
+  <div id="bookingModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="document.getElementById('popupModal').style.display='none'">×</span>
-      <div id="popupContent"></div>
+      <h4>New Booking</h4>
+      <input id="firstName" placeholder="First Name" class="form-control mb-2" />
+      <input id="lastName" placeholder="Last Name" class="form-control mb-2" />
+      <input id="guests" type="number" placeholder="Guests" class="form-control mb-2" />
+      <input id="arrival" type="date" class="form-control mb-2" />
+      <input id="departure" type="date" class="form-control mb-2" />
+      <div class="form-check mb-2">
+        <input id="tab" type="checkbox" class="form-check-input" />
+        <label for="tab" class="form-check-label">Add £50 Tab Deposit</label>
+      </div>
+      <div class="d-flex gap-2 mb-2">
+        <select id="roomNumber" class="form-select"></select>
+        <button id="findRoomBtn" class="btn btn-secondary">Find Room</button>
+      </div>
+      <button class="btn btn-success" onclick="confirmBooking()">Confirm</button>
+      <button class="btn btn-danger" onclick="closeModal('bookingModal')">Close</button>
     </div>
   </div>
 
-<script>
-let bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-const today = new Date();
-let selectedDate = today.toISOString().split('T')[0];
+  <!-- Check-in Clean Prompt -->
+  <div id="cleanCheckPopup" class="modal">
+    <div class="modal-content">
+      <h5>Room Cleaning Status</h5>
+      <p>Is the room clean?</p>
+      <button id="cleanYes" class="btn btn-success">Yes</button>
+      <button id="cleanNo" class="btn btn-danger">No</button>
+    </div>
+  </div>
 
-function init() {
-  generateDaySelector();
-  renderBookings();
-}
-function generateDaySelector() {
-  const sel = document.getElementById('daySelector');
-  sel.innerHTML = '';
-  for (let i = -2; i <= 7; i++) {
-    const d = new Date();
-    d.setDate(today.getDate() + i);
-    const val = d.toISOString().split('T')[0];
-    const opt = document.createElement('option');
-    opt.value = val;
-    opt.textContent = val;
-    if (val === selectedDate) opt.selected = true;
-    sel.appendChild(opt);
-  }
-  sel.onchange = () => {
-    selectedDate = sel.value;
-    renderBookings();
-  };
-}
+  <script>
+    let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
+    let currentBookingId = null;
 
-function renderBookings() {
-  const container = document.getElementById('roomsContainer');
-  container.innerHTML = '';
-  for (let room = 101; room <= 106; room++) {
-    const booking = bookings.find(b => b.room == room && b.arrival === selectedDate);
-    const div = document.createElement('div');
-    div.className = 'room-card';
-    div.innerHTML = `
-      <div class="room-info">
-        <span><strong>Room ${room}</strong></span>
-        <span>Status: ${booking ? (booking.checkedIn ? 'Checked In' : 'Reserved') : 'Available'}</span>
-        <span>Guest: ${booking?.guest || '-'}</span>
-        <span>Bill: £${booking?.bill || 0}</span>
-      </div>
-      <div>
-        ${booking ? (booking.checkedIn
-          ? `<button class="button-blue" onclick="showAction(${room})">Action</button>`
-          : `<button class="button-green" onclick="attemptCheckin(${room})">Check In</button>`)
-          : `<span>-</span>`}
-      </div>
-    `;
-    container.appendChild(div);
-  }
-}
-
-function showBookingForm() {
-  document.getElementById('bookingModal').style.display = 'flex';
-}
-
-function closeBookingForm() {
-  document.getElementById('bookingModal').style.display = 'none';
-}
-
-function confirmBooking() {
-  const guest = document.getElementById('guestName').value;
-  const room = document.getElementById('roomNumber').value;
-  const arrival = document.getElementById('arrivalDate').value;
-  const departure = document.getElementById('departureDate').value;
-  const deposit = document.getElementById('depositBox').checked ? 50 : 0;
-  const bill = 75 + deposit;
-
-  if (!guest || !arrival || !departure) return showPopupMessage("Please fill out all fields.");
-
-  const overlap = bookings.some(b => b.room === room &&
-    ((arrival >= b.arrival && arrival <= b.departure) ||
-     (departure >= b.arrival && departure <= b.departure)));
-
-  if (overlap) return showPopupMessage("Room already booked for those dates.");
-
-  bookings.push({ guest, room, arrival, departure, deposit, bill, checkedIn: false });
-  localStorage.setItem('bookings', JSON.stringify(bookings));
-  closeBookingForm();
-  renderBookings();
-}
-
-function findRoom() {
-  const arrival = document.getElementById('arrivalDate').value;
-  const departure = document.getElementById('departureDate').value;
-  for (let room = 101; room <= 106; room++) {
-    const booked = bookings.some(b => b.room == room &&
-      ((arrival >= b.arrival && arrival <= b.departure) ||
-      (departure >= b.arrival && departure <= b.departure)));
-    if (!booked) {
-      document.getElementById('roomNumber').value = room;
-      showPopupMessage(`Assigned available Room ${room}`);
-      return;
+    function showBookingForm() {
+      document.getElementById("bookingModal").style.display = "flex";
+      const roomSelect = document.getElementById("roomNumber");
+      roomSelect.innerHTML = "";
+      for (let i = 101; i <= 106; i++) {
+        roomSelect.innerHTML += `<option value="${i}">${i}</option>`;
+      }
     }
-  }
-  showPopupMessage("No available rooms.");
-}
 
-function attemptCheckin(room) {
-  if (confirm("Is the room clean?")) {
-    const booking = bookings.find(b => b.room == room && b.arrival == selectedDate);
-    if (booking) {
-      booking.checkedIn = true;
-      localStorage.setItem('bookings', JSON.stringify(bookings));
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
+    }
+
+    function confirmBooking() {
+      const fname = document.getElementById("firstName").value;
+      const lname = document.getElementById("lastName").value;
+      const guests = +document.getElementById("guests").value;
+      const arrival = document.getElementById("arrival").value;
+      const departure = document.getElementById("departure").value;
+      const room = document.getElementById("roomNumber").value;
+      const tab = document.getElementById("tab").checked;
+      const id = Date.now().toString();
+      
+      if (!fname || !lname || !arrival || !departure || !room) return;
+
+      bookings.push({ id, fname, lname, guests, arrival, departure, room, tab, checkedIn: false, checkedOut: false, charges: tab ? 50 : 0, clean: true });
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+      closeModal("bookingModal");
       renderBookings();
     }
-  } else {
-    showPopupMessage("Check-in not allowed. Room not clean.");
-  }
-}
 
-function showAction(room) {
-  const booking = bookings.find(b => b.room == room && b.arrival == selectedDate);
-  if (!booking) return;
-  const popup = document.getElementById('popupContent');
-  popup.innerHTML = `
-    <h3>Room ${room} - ${booking.guest}</h3>
-    <p>Total Bill: £${booking.bill}</p>
-    <button onclick="showBreakdown(${room})">Breakdown</button>
-  `;
-  document.getElementById('popupModal').style.display = 'flex';
-}
+    function renderBookings() {
+      const table = document.getElementById("bookingTable");
+      const day = document.getElementById("dateSelector").value;
+      table.innerHTML = "";
+      bookings.forEach(b => {
+        if (day >= b.arrival && day <= b.departure) {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${b.room}</td>
+            <td><span class="badge ${b.clean ? 'bg-success' : 'bg-danger'}">${b.clean ? 'Clean' : 'Dirty'}</span></td>
+            <td>${b.fname} ${b.lname}</td>
+            <td>£${b.charges.toFixed(2)}</td>
+            <td>
+              ${!b.checkedIn ? `<button class="btn btn-primary btn-sm" onclick="promptClean('${b.id}')">Check In</button>` :
+                !b.checkedOut ? `<button class="btn btn-warning btn-sm" onclick="checkout('${b.id}')">Checkout</button>` :
+                '<span class="text-muted">Checked Out</span>'}
+            </td>`;
+          table.appendChild(row);
+        }
+      });
+    }
 
-function showBreakdown(room) {
-  const booking = bookings.find(b => b.room == room && b.arrival == selectedDate);
-  document.getElementById('popupContent').innerHTML = `
-    <h3>Bill Breakdown - Room ${room}</h3>
-    <p>Base Room: £75</p>
-    ${booking.deposit ? `<p>Tab Deposit: £${booking.deposit}</p>` : ''}
-    <p><strong>Total: £${booking.bill}</strong></p>
-  `;
-}
+    function promptClean(id) {
+      currentBookingId = id;
+      document.getElementById("cleanCheckPopup").style.display = "flex";
+    }
 
-function showPopup(type) {
-  let content = '<h3>' + type.charAt(0).toUpperCase() + type.slice(1) + ' Bookings</h3>';
-  const now = new Date().toISOString().split('T')[0];
-  bookings.filter(b =>
-    type === 'history' ? b.departure < now :
-    type === 'upcoming' ? b.arrival > now : false
-  ).forEach(b => {
-    content += `<p>${b.guest} - Room ${b.room} (${b.arrival} to ${b.departure})</p>`;
-  });
-  document.getElementById('popupContent').innerHTML = content;
-  document.getElementById('popupModal').style.display = 'flex';
-}
+    document.getElementById("cleanYes").onclick = () => {
+      const booking = bookings.find(b => b.id === currentBookingId);
+      booking.checkedIn = true;
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+      closeModal("cleanCheckPopup");
+      renderBookings();
+    };
 
-function showPopupMessage(msg) {
-  document.getElementById('popupContent').innerHTML = `<p>${msg}</p>`;
-  document.getElementById('popupModal').style.display = 'flex';
-}
+    document.getElementById("cleanNo").onclick = () => {
+      closeModal("cleanCheckPopup");
+    };
 
-init();
-</script>
+    function checkout(id) {
+      const booking = bookings.find(b => b.id === id);
+      let extra = 0;
+      const storedPOS = JSON.parse(localStorage.getItem("posCharges") || "[]");
+      storedPOS.forEach(p => {
+        if (p.room === booking.room && !p.processed) {
+          booking.charges += p.amount;
+          p.processed = true;
+        }
+      });
+      localStorage.setItem("posCharges", JSON.stringify(storedPOS));
+      booking.checkedOut = true;
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+      renderBookings();
+    }
+
+    document.getElementById("dateSelector").onchange = renderBookings;
+    document.getElementById("findRoomBtn").onclick = () => {
+      const arrival = document.getElementById("arrival").value;
+      const departure = document.getElementById("departure").value;
+      for (let i = 101; i <= 106; i++) {
+        const overlap = bookings.some(b => b.room == i && !(b.departure < arrival || b.arrival > departure));
+        if (!overlap) {
+          document.getElementById("roomNumber").value = i;
+          return;
+        }
+      }
+      alert("No available rooms.");
+    };
+
+    window.onload = () => {
+      const today = new Date().toISOString().split("T")[0];
+      document.getElementById("dateSelector").value = today;
+      renderBookings();
+    };
+  </script>
 </body>
 </html>
