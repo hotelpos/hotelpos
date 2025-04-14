@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .popup {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+    .circle-select {
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+    .circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .circle:hover {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="popup">
+    <h2>Select Cashier</h2>
+    <div class="circle-select">
+      <div class="circle" style="background:red" onclick="selectCashier('Red')"></div>
+      <div class="circle" style="background:blue" onclick="selectCashier('Blue')"></div>
+      <div class="circle" style="background:green" onclick="selectCashier('Green')"></div>
+      <div class="circle" style="background:orange" onclick="selectCashier('Orange')"></div>
+    </div>
+  </div>
+
+  <script>
+    function selectCashier(color) {
+      const pin = prompt("Enter PIN:");
+      if (pin === "BDL") {
+        alert(`Cashier ${color} logged in!`);
+        window.location.href = "modeSelection.html"; // Redirect to mode selection
+      } else {
+        alert("Incorrect PIN!");
+      }
+    }
+  </script>
+
+</body>
+</html>
