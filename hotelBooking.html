@@ -1,158 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hotel Booking</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .navbar {
-      display: flex; justify-content: space-between; background: #333; padding: 10px; color: white;
-    }
-    .navbar button, .navbar select { margin: 0 5px; padding: 5px 10px; }
-    .room-list { display: flex; flex-wrap: wrap; margin: 20px; }
-    .room { margin: 10px; padding: 10px; border: 1px solid #ccc; }
-    .button-green { background-color: green; color: white; }
-    .button-red { background-color: red; color: white; }
-    .button-gray { background-color: gray; color: white; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); }
-    .modal-content { background: white; padding: 20px; margin: 10% auto; width: 50%; border-radius: 5px; }
-    .modal-header { font-size: 20px; margin-bottom: 10px; }
-    .modal-body { margin: 20px 0; }
-    .modal-footer { text-align: right; }
-    .modal-button { padding: 10px; background-color: #333; color: white; border: none; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Booking</title>
+    <style>
+        /* Add your styling here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .room {
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+        }
+        .room-button {
+            padding: 10px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .green { background-color: green; color: white; }
+        .red { background-color: red; color: white; }
+    </style>
 </head>
 <body>
 
-<!-- Navigation Bar -->
-<div class="navbar">
-  <div>
-    <button onclick="window.location.href='index.html'">EXIT</button>
-    <button onclick="window.location.href='pos.html'">POS</button>
-    <button onclick="window.location.href='hotelBooking.html'">Hotel Booking</button>
-  </div>
-  <div>
-    <label for="dateSelector">Date: </label>
-    <input type="date" id="daySelector" onchange="changeDay()" />
-    <select id="adminDropdown">
-      <option value="history" onclick="showHistory()">History</option>
-      <option value="upcoming" onclick="showUpcoming()">Upcoming</option>
-    </select>
-  </div>
-</div>
-
-<!-- Room Booking Interface -->
-<div class="room-list">
-  <div class="room" id="room101">
-    <h3>Room 101</h3>
-    <p>Status: <span id="status101">Not Checked In</span></p>
-    <button id="checkin101" onclick="checkIn(101)" class="button-red">Check In</button>
-  </div>
-  <div class="room" id="room102">
-    <h3>Room 102</h3>
-    <p>Status: <span id="status102">Not Checked In</span></p>
-    <button id="checkin102" onclick="checkIn(102)" class="button-red">Check In</button>
-  </div>
-  <div class="room" id="room103">
-    <h3>Room 103</h3>
-    <p>Status: <span id="status103">Not Checked In</span></p>
-    <button id="checkin103" onclick="checkIn(103)" class="button-red">Check In</button>
-  </div>
-  <!-- Repeat for rooms 104-106 -->
-</div>
-
-<!-- History and Upcoming Modal Pop-ups -->
-<div id="historyModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <span>Booking History</span>
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="index.html">Exit</a>
+        <a href="hotelBooking.html">Hotel Booking</a>
+        <a href="pos.html">POS</a>
+        <a href="clean.html">Clean</a>
     </div>
-    <div class="modal-body" id="historyContent">
-      <!-- History content will be injected here -->
+
+    <div id="roomsContainer">
+        <!-- Dynamically filled with room details -->
     </div>
-    <div class="modal-footer">
-      <button class="modal-button" onclick="closeModal('historyModal')">Close</button>
+
+    <!-- Popup for History and Upcoming -->
+    <div id="popup" style="display:none; background-color: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; right: 0; bottom: 0; padding: 50px; justify-content: center; align-items: center; display: flex; flex-direction: column;">
+        <h2>Booking History and Upcoming</h2>
+        <div id="bookingHistory"></div>
+        <div id="upcomingBookings"></div>
+        <button onclick="closePopup()">Close</button>
     </div>
-  </div>
-</div>
 
-<div id="upcomingModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <span>Upcoming Bookings</span>
-    </div>
-    <div class="modal-body" id="upcomingContent">
-      <!-- Upcoming content will be injected here -->
-    </div>
-    <div class="modal-footer">
-      <button class="modal-button" onclick="closeModal('upcomingModal')">Close</button>
-    </div>
-  </div>
-</div>
+    <script>
+        let bookings = [];
 
-<script>
-  let bookings = [
-    { room: 101, name: 'John Doe', status: 'Checked In', date: '2025-04-15', charges: 100 },
-    { room: 102, name: 'Jane Smith', status: 'Checked Out', date: '2025-04-10', charges: 75 }
-  ];
+        function renderBookings() {
+            const roomsContainer = document.getElementById('roomsContainer');
+            roomsContainer.innerHTML = ''; // Reset the rooms container
+            bookings.forEach((booking, index) => {
+                let roomStatus = booking.checkedIn ? 'Check-out' : 'Check-in';
+                let roomColor = booking.cleanStatus === 'clean' ? 'green' : 'red';
+                const roomDiv = document.createElement('div');
+                roomDiv.classList.add('room');
+                roomDiv.innerHTML = `
+                    <span>Room ${booking.roomNumber}</span>
+                    <span>${booking.guestName}</span>
+                    <span>Total: £${booking.totalBill}</span>
+                    <span class="room-button ${roomColor}" onclick="showBookingDetails(${index})">${roomStatus}</span>
+                    <button onclick="showBookingDetails(${index})" class="room-button">Action</button>
+                `;
+                roomsContainer.appendChild(roomDiv);
+            });
+        }
 
-  function changeDay() {
-    // Update system's current date (this could be used to restrict bookings)
-    let selectedDate = document.getElementById('daySelector').value;
-    console.log('Selected date:', selectedDate);
-  }
+        function showBookingDetails(index) {
+            const booking = bookings[index];
+            alert(`Booking Details:\nName: ${booking.guestName}\nTotal: £${booking.totalBill}`);
+            if (!booking.checkedIn) {
+                let checkInConfirmation = confirm('Do you want to Check-in?');
+                if (checkInConfirmation) {
+                    bookings[index].checkedIn = true;
+                    renderBookings();
+                }
+            } else {
+                alert('Already Checked-in!');
+            }
+        }
 
-  function showHistory() {
-    let historyModal = document.getElementById('historyModal');
-    let historyContent = document.getElementById('historyContent');
-    
-    // Populating history content
-    historyContent.innerHTML = '<h3>Booking History:</h3>';
-    bookings.forEach(booking => {
-      historyContent.innerHTML += `<p>Room ${booking.room}: ${booking.name} - Charges: £${booking.charges}</p>`;
-    });
+        function createBooking() {
+            const guestName = prompt("Enter guest name:");
+            const roomNumber = prompt("Enter room number (101-106):");
+            const totalBill = 75; // Default room price
+            const cleanStatus = 'red'; // Red means room is not clean initially
+            const booking = {
+                guestName,
+                roomNumber,
+                totalBill,
+                checkedIn: false,
+                cleanStatus
+            };
+            bookings.push(booking);
+            renderBookings();
+        }
 
-    historyModal.style.display = 'block';
-  }
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
 
-  function showUpcoming() {
-    let upcomingModal = document.getElementById('upcomingModal');
-    let upcomingContent = document.getElementById('upcomingContent');
-    
-    // Populating upcoming content (for this demo, we'll use the same bookings array)
-    upcomingContent.innerHTML = '<h3>Upcoming Bookings:</h3>';
-    bookings.forEach(booking => {
-      if (new Date(booking.date) > new Date()) { // Upcoming bookings
-        upcomingContent.innerHTML += `<p>Room ${booking.room}: ${booking.name} - Date: ${booking.date}</p>`;
-      }
-    });
-
-    upcomingModal.style.display = 'block';
-  }
-
-  function closeModal(modalId) {
-    let modal = document.getElementById(modalId);
-    modal.style.display = 'none';
-  }
-
-  function checkIn(roomNumber) {
-    // Simulating check-in behavior
-    let roomStatus = document.getElementById(`status${roomNumber}`);
-    let checkInButton = document.getElementById(`checkin${roomNumber}`);
-    
-    if (roomStatus.innerText === 'Not Checked In') {
-      roomStatus.innerText = 'Checked In';
-      checkInButton.classList.remove('button-red');
-      checkInButton.classList.add('button-green');
-      checkInButton.innerText = 'Checked In';
-    }
-  }
-
-  window.onload = function() {
-    // You can initialize the bookings here and update UI dynamically
-  };
-</script>
+        window.onload = () => {
+            renderBookings();
+        }
+    </script>
 
 </body>
 </html>
