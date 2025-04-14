@@ -1,131 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Cleaning Status</title>
-  <style>
-    body { font-family: Arial; margin: 0; padding: 0; }
-    .navbar {
-      display: flex; justify-content: space-between;
-      background: #222; padding: 10px; color: white;
-    }
-    .navbar button, .navbar select {
-      margin: 0 5px; padding: 5px 10px;
-    }
-    .room {
-      margin: 10px;
-    }
-    .clean-button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px;
-    }
-    .button-green {
-      background-color: green;
-      color: white;
-    }
-    .button-red {
-      background-color: red;
-      color: white;
-    }
-    .day-selector {
-      margin-top: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleaning Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .room-button {
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .green { background-color: green; color: white; }
+        .red { background-color: red; color: white; }
+    </style>
 </head>
 <body>
 
-  <!-- NAVIGATION BAR -->
-  <div class="navbar">
-    <div>
-      <button onclick="window.location.href='index.html'">EXIT</button>
-      <button onclick="window.location.href='hotelBooking.html'">Hotel Booking</button>
-      <button onclick="window.location.href='pos.html'">POS</button>
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="index.html">Exit</a>
+        <a href="hotelBooking.html">Hotel Booking</a>
+        <a href="pos.html">POS</a>
+        <a href="clean.html">Clean</a>
     </div>
-    <div>
-      <label for="dateSelector">Date: </label>
-      <input type="date" id="dayChanger" onchange="changeDay()" />
-    </div>
-  </div>
 
-  <!-- CLEANING STATUS BUTTONS -->
-  <div id="cleaningStatus" style="padding: 20px;">
-    <h3>Room Cleaning Status</h3>
-    <div class="room">
-      <button id="room101" class="clean-button button-red" onclick="toggleCleaning(101)">Room 101: Not Clean</button>
+    <div id="cleaningContainer">
+        <button class="room-button red" onclick="toggleCleaning(101)">Room 101</button>
+        <button class="room-button red" onclick="toggleCleaning(102)">Room 102</button>
+        <button class="room-button red" onclick="toggleCleaning(103)">Room 103</button>
+        <button class="room-button red" onclick="toggleCleaning(104)">Room 104</button>
+        <button class="room-button red" onclick="toggleCleaning(105)">Room 105</button>
+        <button class="room-button red" onclick="toggleCleaning(106)">Room 106</button>
     </div>
-    <div class="room">
-      <button id="room102" class="clean-button button-red" onclick="toggleCleaning(102)">Room 102: Not Clean</button>
-    </div>
-    <div class="room">
-      <button id="room103" class="clean-button button-red" onclick="toggleCleaning(103)">Room 103: Not Clean</button>
-    </div>
-    <div class="room">
-      <button id="room104" class="clean-button button-red" onclick="toggleCleaning(104)">Room 104: Not Clean</button>
-    </div>
-    <div class="room">
-      <button id="room105" class="clean-button button-red" onclick="toggleCleaning(105)">Room 105: Not Clean</button>
-    </div>
-    <div class="room">
-      <button id="room106" class="clean-button button-red" onclick="toggleCleaning(106)">Room 106: Not Clean</button>
-    </div>
-  </div>
 
-  <script>
-    let cleaningStatus = {
-      101: false, // false means not cleaned, true means cleaned
-      102: false,
-      103: false,
-      104: false,
-      105: false,
-      106: false
-    };
+    <script>
+        let cleanStatus = {
+            101: 'red',
+            102: 'red',
+            103: 'red',
+            104: 'red',
+            105: 'red',
+            106: 'red'
+        };
 
-    // Function to toggle the cleaning status of a room
-    function toggleCleaning(roomNumber) {
-      cleaningStatus[roomNumber] = !cleaningStatus[roomNumber];
-      updateCleaningButton(roomNumber);
-    }
-
-    // Update the button's appearance based on cleaning status
-    function updateCleaningButton(roomNumber) {
-      const button = document.getElementById(`room${roomNumber}`);
-      if (cleaningStatus[roomNumber]) {
-        button.classList.remove('button-red');
-        button.classList.add('button-green');
-        button.innerText = `Room ${roomNumber}: Clean`;
-      } else {
-        button.classList.remove('button-green');
-        button.classList.add('button-red');
-        button.innerText = `Room ${roomNumber}: Not Clean`;
-      }
-    }
-
-    // Reset all rooms to not cleaned (red) for the next day
-    function resetCleaningStatus() {
-      for (let i = 101; i <= 106; i++) {
-        cleaningStatus[i] = false;
-        updateCleaningButton(i);
-      }
-    }
-
-    // Change the day (resets cleaning status)
-    function changeDay() {
-      const selectedDate = document.getElementById('dayChanger').value;
-      if (selectedDate) {
-        // Reset cleaning status when the day changes
-        resetCleaningStatus();
-      }
-    }
-
-    // Initial page load setup
-    window.onload = function() {
-      // Set initial cleaning status buttons based on initial state
-      for (let i = 101; i <= 106; i++) {
-        updateCleaningButton(i);
-      }
-    };
-  </script>
+        function toggleCleaning(room) {
+            cleanStatus[room] = cleanStatus[room] === 'red' ? 'green' : 'red';
+            document.querySelectorAll('.room-button').forEach(button => {
+                if (button.textContent.includes(room)) {
+                    button.classList.remove('red', 'green');
+                    button.classList.add(cleanStatus[room]);
+                }
+            });
+            alert(`Room ${room} cleaning status updated to ${cleanStatus[room]}`);
+        }
+    </script>
 
 </body>
 </html>
