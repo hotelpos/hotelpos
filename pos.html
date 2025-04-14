@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>POS System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f8f9fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .pos {
+      flex: 1;
+      padding: 20px;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .pos-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pos-buttons button {
+      padding: 15px;
+      font-size: 1em;
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 30%;
+    }
+
+    .tab {
+      flex: 1;
+      background: #fff;
+      padding: 20px;
+      box-sizing: border-box;
+      border-left: 2px solid #ccc;
+    }
+
+    .tab-items {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .total {
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .clear-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .clear-buttons button {
+      padding: 10px;
+      font-size: 1em;
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .room-button {
+      padding: 10px;
+      font-size: 1em;
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .recent-orders {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 150px;
+      height: 50px;
+      background: purple;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    /* Popup */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 5;
+    }
+
+    #popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      display: none;
+      z-index: 10;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .popup-content {
+      max-height: 70vh;
+      overflow-y: scroll;
+    }
+
+    #popup button {
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="pos">
+    <div class="pos-buttons">
+      <button onclick="addItem('Coffee', 2.5)">Coffee £2.5</button>
+      <button onclick="addItem('Tea', 2.5)">Tea £2.5</button>
+      <button onclick="addItem('Hot Chocolate', 2.5)">Hot Chocolate £2.5</button>
+      <button onclick="addItem('Crisps', 1)">Crisps £1</button>
+      <button onclick="addItem('Cereal Bar', 0.5)">Cereal Bar £0.5</button>
+      <button onclick="addItem('Water Bottle', 0.75)">Water Bottle £0.75</button>
+      <button onclick="addItem('Toast', 0.5)">Toast £0.5</button>
+      <button onclick="addItem('Diluting Juice', 0.75)">Diluting Juice £0.75</button>
+    </div>
+    <button class="custom-item-button" onclick="showCustomItemPopup()">➕ Custom Item</button>
+  </div>
+
+  <div class="tab">
+    <div class="tab-items" id="tabItems"></div>
+    <div class="total">Total: £<span id="total">0.00</span></div>
+    <div class="clear-buttons">
+      <button onclick="processPayment('Cash')">CASH</button>
+      <button onclick="processPayment('Card')">CARD</button>
+    </div>
+    <button class="room-button" onclick="processRoomPayment()">ROOM</button>
+  </div>
+</div>
+
+<div class="recent-orders" onclick="showOrders()">Orders</div>
+
+<div id="overlay" onclick="closePopup()"></div>
+
+<!-- Orders Popup -->
+<div id="popup">
+  <h2>Recent Orders</h2>
+  <div class="popup-content" id="ordersList"></div>
+  <button onclick="closePopup()">Close</button>
+</div>
+
+<script>
+  let total = 0;
+  let orderItems = [];
+  let orderHistory = [];
+  let orderCount = 0;
+  let currentCashier = null;
+  const roomStatus = {
+    101: 'checked-in',
+    102: 'available',
+    103: 'available',
+    104: 'available',
+    105: 'available',
+    106: 'available'
+  };
+
+  window.onload = () => {
+    alert("Please log in to continue");
+    const cashierName = prompt("Enter cashier's name:");
+
+    if (cashierName) {
+      currentCashier = cashierName;
+    }
+  };
+
+  function addItem(name, price) {
+    const tabItems = document.getElementById('tabItems');
+    const item = document.createElement('div');
+    item.textContent = `${name} - £${price.toFixed(2)}`;
+    tabItems.appendChild(item);
+
+    total += price;
+    orderItems.push({ name, price });
+    document.getElementById('total').textContent = total.toFixed(2);
+  }
+
+  function showCustomItemPopup() {
+    const customItem = prompt("Enter custom item name and price (e.g., 'ItemName 5.00')");
+
+    if (customItem) {
+      const [itemName, itemPrice] = customItem.split(' ');
+
+      if (itemName && !isNaN(itemPrice)) {
+        addItem(itemName, parseFloat(itemPrice));
+      } else {
+        alert("Invalid input. Try again.");
+      }
+    }
+  }
+
+  function processPayment(type) {
+    if (total === 0 || !currentCashier) return;
+    orderCount++;
+    orderHistory.push({
+      id: orderCount,
+      items: [...orderItems],
+      total: total.toFixed(2),
+      payment: type,
+      cashier: currentCashier
+    });
+    clearTab();
+  }
+
+  function processRoomPayment() {
+    if (total === 0 || !currentCashier) return;
+    const roomNumber = prompt("Enter Room Number:");
+
+    if (roomStatus[roomNumber] === 'checked-in') {
+      orderCount++;
+      orderHistory.push({
+        id: orderCount,
+        items: [...orderItems],
+        total: total.toFixed(2),
+        payment: `Room ${roomNumber}`,
+        cashier: currentCashier
+      });
+      clearTab();
+    } else {
+      alert("Room is not checked in or unavailable.");
+    }
+  }
+
+  function clearTab() {
+    document.getElementById('tabItems').innerHTML = '';
+    total = 0;
+    orderItems = [];
+    document.getElementById('total').textContent = total.toFixed(2);
+  }
+
+  function showOrders() {
+    const ordersList = document.getElementById('ordersList');
+    ordersList.innerHTML = '';
+    orderHistory.slice().reverse().forEach(order => {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>Order #${order.id}</strong><br>
+        Items: ${order.items.map(i => i.name).join(', ')}<br>
+        Total: £${order.total}<br>
+        Payment: ${order.payment}<br>
+        Cashier: ${order.cashier}<hr>`;
+      ordersList.appendChild(div);
+    });
+    document.getElementById('popup').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+  }
+
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
