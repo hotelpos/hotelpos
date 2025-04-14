@@ -164,6 +164,12 @@
         <a href="clean.html">Clean</a>
     </div>
 
+    <!-- Date Selector -->
+    <div style="margin: 20px;">
+        <label for="currentDate">Select Date:</label>
+        <input type="date" id="currentDate" onchange="updateCurrentDate()">
+    </div>
+
     <!-- Create Booking Button -->
     <button onclick="showBookingForm()">Create New Booking</button>
 
@@ -219,23 +225,22 @@
     </div>
 
     <script>
-        let bookings = [];
+        let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
         let roomsStatus = {
-            101: 'red',
-            102: 'red',
-            103: 'red',
-            104: 'red',
-            105: 'red',
-            106: 'red',
+            101: { status: 'clean', guestName: '', checkedIn: false },
+            102: { status: 'clean', guestName: '', checkedIn: false },
+            103: { status: 'clean', guestName: '', checkedIn: false },
+            104: { status: 'clean', guestName: '', checkedIn: false },
+            105: { status: 'clean', guestName: '', checkedIn: false },
+            106: { status: 'clean', guestName: '', checkedIn: false },
         };
 
-        // Function to render the bookings
         function renderBookings() {
             const roomsContainer = document.getElementById('roomsContainer');
             roomsContainer.innerHTML = ''; // Reset the rooms container
             bookings.forEach((booking, index) => {
                 let roomStatus = booking.checkedIn ? 'Check-out' : 'Check-in';
-                let roomColor = roomsStatus[booking.roomNumber] === 'clean' ? 'green' : 'red';
+                let roomColor = roomsStatus[booking.roomNumber].status === 'clean' ? 'green' : 'red';
                 const roomDiv = document.createElement('div');
                 roomDiv.classList.add('room');
                 roomDiv.innerHTML = `
@@ -248,23 +253,31 @@
             });
         }
 
-        // Function to show the booking form popup
         function showBookingForm() {
             document.getElementById('bookingFormPopup').style.display = 'flex';
         }
 
-        // Function to close the booking form
         function closeBookingForm() {
             document.getElementById('bookingFormPopup').style.display = 'none';
         }
 
-        // Find Room Button
         function findRoom() {
             const roomNumber = document.getElementById('roomNumber').value;
-            alert('Room ' + roomNumber + ' is available for booking.');
+            const arrivalDate = document.getElementById('arrivalDate').value;
+            const departureDate = document.getElementById('departureDate').value;
+
+            // Check if the room is available for the selected dates
+            const roomBooked = bookings.some(booking => booking.roomNumber === roomNumber &&
+                ((arrivalDate >= booking.arrivalDate && arrivalDate <= booking.departureDate) ||
+                 (departureDate >= booking.arrivalDate && departureDate <= booking.departureDate)));
+
+            if (roomBooked) {
+                alert(`Room ${roomNumber} is already booked for the selected dates.`);
+            } else {
+                alert(`Room ${roomNumber} is available for booking.`);
+            }
         }
 
-        // Function to confirm the booking
         function confirmBooking() {
             const guestName = document.getElementById('guestName').value;
             const roomNumber = document.getElementById('roomNumber').value;
@@ -282,17 +295,17 @@
                 roomNumber,
                 totalBill: 75 + deposit, // Default room price + deposit if selected
                 checkedIn: false,
-                cleanStatus: roomsStatus[roomNumber],
+                cleanStatus: roomsStatus[roomNumber].status,
                 arrivalDate,
                 departureDate
             };
 
             bookings.push(booking);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
             renderBookings();
             closeBookingForm();
         }
 
-        // Function to show booking details in a popup
         function showBookingDetails(index) {
             const booking = bookings[index];
             const bookingDetails = `
@@ -300,31 +313,42 @@
                 <p>Name: ${booking.guestName}</p>
                 <p>Room Number: ${booking.roomNumber}</p>
                 <p>Total Bill: £${booking.totalBill}</p>
-                <p>Arrival Date: ${booking.arrivalDate}</p>
-                <p>Departure Date: ${booking.departureDate}</p>
-                <button class="close" onclick="closePopup()">Close</button>
-            `;
+                <p>Arrival Date: ${booking
+.arrivalDate}</p> <p>Departure Date: ${booking.departureDate}</p> <button onclick="handleCheckIn(${index})">${booking.checkedIn ? 'Check-out' : 'Check-in'}</button> `; document.getElementById('bookingHistory').innerHTML = bookingDetails; document.getElementById('popup').style.display = 'flex'; }
+    function handleCheckIn(index) {
+        const booking = bookings[index];
+        const roomStatus = roomsStatus[booking.roomNumber].status;
 
-            openPopup(bookingDetails);
+        if (booking.checkedIn) {
+            booking.checkedIn = false;
+            alert("Guest has checked out.");
+        } else {
+            const isClean = confirm(`Is room ${booking.roomNumber} clean?`);
+            if (isClean) {
+                booking.checkedIn = true;
+                alert("Guest has checked in.");
+            } else {
+                alert("Unable to check in. Room not clean.");
+            }
         }
 
-        // Function to open popup
-        function openPopup(content) {
-            const popup = document.getElementById('popup');
-            popup.style.display = 'flex';
-            document.getElementById('bookingHistory').innerHTML = content;
-        }
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        renderBookings();
+        closePopup();
+    }
 
-        // Function to close the popup
-        function closePopup() {
-            document.getElementById('popup').style.display = 'none';
-        }
+    function closePopup() {
+        document.getElementById('popup').style.display = 'none';
+    }
 
-        // Initial call to render bookings when the page loads
-        window.onload = () => {
-            renderBookings();
-        };
-    </script>
+    function updateCurrentDate() {
+        const date = document.getElementById('currentDate').value;
+        console.log("Current date set to:", date);
+        // This is where you could filter or highlight relevant bookings
+    }
 
-</body>
-</html>
+    window.onload = () => {
+        renderBookings();
+        document.getElementById('currentDate').valueAsDate = new Date();
+    };
+</script>
