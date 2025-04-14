@@ -1,46 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Select Mode</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f4f4;
-    }
-    .popup {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      text-align: center;
-    }
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mode Selection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            background: #333;
+            padding: 10px;
+            color: white;
+        }
+        .navbar button {
+            margin: 0 5px;
+            padding: 5px 10px;
+        }
+        .mode-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-top: 50px;
+        }
+        .mode-button {
+            padding: 20px 40px;
+            font-size: 18px;
+            background-color: #333;
+            color: white;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+        }
+        .mode-button:hover {
+            background-color: #555;
+        }
+        .dropdown {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            z-index: 10;
+        }
+        .dropdown button {
+            padding: 10px;
+            background-color: #333;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        .dropdown button:hover {
+            background-color: #555;
+        }
+        .dropdown.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
+    <div class="navbar">
+        <button onclick="exitApp()">Exit</button>
+        <div>
+            <button onclick="showDropdown()">Admin</button>
+            <div id="adminDropdown" class="dropdown">
+                <button onclick="showHistory()">History</button>
+                <button onclick="showUpcoming()">Upcoming</button>
+            </div>
+        </div>
+        <button onclick="goToHotelBooking()">Hotel Booking</button>
+        <button onclick="goToPOS()">POS</button>
+    </div>
 
-  <div class="popup">
-    <h2>Select Mode</h2>
-    <button onclick="window.location.href = 'pos.html'">POS System</button>
-    <button onclick="window.location.href = 'hotelBooking.html'">Hotel Booking System</button>
-  </div>
+    <div class="mode-container">
+        <h1>Select Mode</h1>
+        <button class="mode-button" onclick="goToHotelBooking()">Hotel Booking</button>
+        <button class="mode-button" onclick="goToPOS()">POS</button>
+        <button class="mode-button" onclick="goToCleaning()">Cleaning</button>
+    </div>
 
+    <script>
+        function exitApp() {
+            window.location.href = "index.html"; // Go to the login page
+        }
+
+        function goToHotelBooking() {
+            window.location.href = "hotelBooking.html"; // Go to the Hotel Booking page
+        }
+
+        function goToPOS() {
+            window.location.href = "pos.html"; // Go to the POS page
+        }
+
+        function goToCleaning() {
+            window.location.href = "clean.html"; // Go to the Cleaning page
+        }
+
+        function showDropdown() {
+            const dropdown = document.getElementById("adminDropdown");
+            dropdown.classList.toggle("show");
+        }
+
+        function showHistory() {
+            alert("History button clicked!"); // This will eventually show the history modal
+        }
+
+        function showUpcoming() {
+            alert("Upcoming button clicked!"); // This will eventually show the upcoming bookings modal
+        }
+    </script>
 </body>
 </html>
