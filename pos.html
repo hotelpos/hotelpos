@@ -1,181 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>POS - Cafe</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
-      margin: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Hotel System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #495057;
+        }
 
-    .navbar {
-      background-color: #343a40;
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
 
-    .navbar button, .navbar select {
-      margin-left: 10px;
-      padding: 5px 10px;
-    }
+        /* Table Styling */
+        .table td, .table th {
+            padding: 15px;
+        }
 
-    .container {
-      padding: 20px;
-    }
+        .modal-header {
+            background-color: #007bff;
+            color: white;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background-color: white;
-    }
+        .btn-custom {
+            border-radius: 50px;
+            padding: 10px 25px;
+        }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #f1f1f1;
-    }
-
-    .btn {
-      padding: 6px 12px;
-      margin: 4px 2px;
-      border: none;
-      cursor: pointer;
-    }
-
-    .btn-primary { background-color: #007bff; color: white; }
-    .btn-danger { background-color: #dc3545; color: white; }
-
-    .input-group {
-      display: flex;
-      margin-bottom: 10px;
-    }
-
-    .input-group input {
-      flex-grow: 1;
-      padding: 8px;
-      margin-right: 10px;
-    }
-
-    .input-group button {
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-  </style>
+        /* Notification Styling */
+        .notification {
+            padding: 20px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-  <div class="navbar">
-    <div>
-      <button onclick="goTo('index.html')" class="btn btn-danger">Exit</button>
-      <button onclick="goTo('hotelBooking.html')" class="btn btn-primary">Hotel Booking</button>
-      <button onclick="goTo('pos.html')" class="btn btn-primary">POS</button>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Hotel POS</a>
+        <a href="index.html" class="btn btn-danger mx-2">Logout</a>
     </div>
-    <div>
-      <input type="date" id="dateSelector" />
+</nav>
+
+<!-- POS System -->
+<div class="container mt-5">
+    <h3>POS - Manage Bookings and Payments</h3>
+
+    <h5>Current Bookings</h5>
+    <table class="table table-striped" id="bookingTable">
+        <thead>
+            <tr>
+                <th>Room</th>
+                <th>Guest Name</th>
+                <th>Total Cost</th>
+                <th>Tab</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="bookingTableBody">
+            <!-- Booking data will populate dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label for="paymentAmount" class="form-label">Amount to Pay (£)</label>
+                            <input type="number" class="form-control" id="paymentAmount" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="processPaymentBtn">Process Payment</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="container">
-    <h2>Cafe POS System</h2>
-    <div class="input-group">
-      <input type="text" id="roomNumber" placeholder="Enter Room Number" />
-      <button class="btn btn-primary" onclick="findRoom()">Find Room</button>
+    <!-- Notification -->
+    <div class="notification" id="paymentNotification">
+        <p><strong>Payment Processed!</strong></p>
+        <p>The payment has been successfully processed.</p>
     </div>
+</div>
 
-    <div id="roomDetails" style="display: none;">
-      <h3>Room Details</h3>
-      <p id="roomInfo"></p>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+<script>
+    // Simulated bookings data
+    let bookings = [
+        { roomNumber: "101", guestName: "John Doe", totalCost: 200, tab: 50, paid: false },
+        { roomNumber: "102", guestName: "Jane Smith", totalCost: 300, tab: 50, paid: false },
+        { roomNumber: "103", guestName: "Alice Johnson", totalCost: 150, tab: 50, paid: false },
+    ];
 
-      <h4>Add Charges</h4>
-      <div class="input-group">
-        <input type="number" id="chargeAmount" placeholder="Charge Amount" />
-        <button class="btn btn-primary" onclick="addCharge()">Add Charge</button>
-      </div>
-
-      <h4>Tab Summary</h4>
-      <ul id="tabDetails"></ul>
-      <button class="btn btn-danger" onclick="clearTab()">Clear Tab</button>
-    </div>
-  </div>
-
-  <script>
-    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    let currentDate = new Date().toISOString().split('T')[0];
-    document.getElementById('dateSelector').value = currentDate;
-
-    document.getElementById('dateSelector').addEventListener('change', (e) => {
-      currentDate = e.target.value;
-    });
-
-    function goTo(page) {
-      window.location.href = page;
+    // Display current bookings in POS
+    function displayBookings() {
+        const bookingTableBody = document.getElementById('bookingTableBody');
+        bookingTableBody.innerHTML = '';
+        bookings.forEach((booking, index) => {
+            let row = bookingTableBody.insertRow();
+            row.innerHTML = `
+                <td>${booking.roomNumber}</td>
+                <td>${booking.guestName}</td>
+                <td>£${booking.totalCost}</td>
+                <td>£${booking.tab}</td>
+                <td>
+                    <button class="btn btn-success btn-custom" onclick="openPaymentModal(${index})">${booking.paid ? 'Paid' : 'Pay'}</button>
+                </td>
+            `;
+        });
     }
 
-    function findRoom() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      const booking = bookings.find(b => b.room === roomNumber && b.arrival <= currentDate && b.departure > currentDate);
+    // Open payment modal and handle the payment process
+    function openPaymentModal(index) {
+        const booking = bookings[index];
+        if (booking.paid) {
+            alert("This booking has already been paid.");
+            return;
+        }
 
-      if (booking) {
-        document.getElementById('roomDetails').style.display = 'block';
-        document.getElementById('roomInfo').textContent = `Guest: ${booking.name}, Room: ${roomNumber}, Status: ${booking.status}`;
-        renderTabDetails(booking);
-      } else {
-        alert('Room not found or not available for today.');
-      }
+        document.getElementById('paymentAmount').value = booking.totalCost + booking.tab; // Set the full payment amount
+        const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        modal.show();
+
+        // Handle payment processing
+        document.getElementById('processPaymentBtn').onclick = function() {
+            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+            if (paymentAmount >= booking.totalCost + booking.tab) {
+                bookings[index].paid = true;
+                displayBookings();
+                document.getElementById('paymentNotification').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('paymentNotification').style.display = 'none';
+                }, 3000);
+                modal.hide();
+            } else {
+                alert("Insufficient payment.");
+            }
+        };
     }
 
-    function addCharge() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      const chargeAmount = parseFloat(document.getElementById('chargeAmount').value);
-
-      if (isNaN(chargeAmount) || chargeAmount <= 0) {
-        alert('Please enter a valid charge amount.');
-        return;
-      }
-
-      const booking = bookings.find(b => b.room === roomNumber && b.arrival <= currentDate && b.departure > currentDate);
-
-      if (booking) {
-        // Add charge to the room's tab
-        booking.charges += chargeAmount;
-
-        // Update localStorage
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        renderTabDetails(booking);
-      } else {
-        alert('Room not found or not available for today.');
-      }
-    }
-
-    function renderTabDetails(booking) {
-      const tabDetails = document.getElementById('tabDetails');
-      tabDetails.innerHTML = '';
-      tabDetails.innerHTML += `<li>Tab Total: £${booking.charges.toFixed(2)}</li>`;
-    }
-
-    function clearTab() {
-      const roomNumber = document.getElementById('roomNumber').value;
-      const booking = bookings.find(b => b.room === roomNumber && b.arrival <= currentDate && b.departure > currentDate);
-
-      if (booking) {
-        // Reset charges
-        booking.charges = 0;
-
-        // Update localStorage
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        renderTabDetails(booking);
-      } else {
-        alert('Room not found or not available for today.');
-      }
-    }
-  </script>
+    // Initialize the POS system
+    displayBookings();
+</script>
 </body>
 </html>
