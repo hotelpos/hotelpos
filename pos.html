@@ -1,164 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hotel POS</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script defer src="https://unpkg.com/@popperjs/core@2"></script>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-gray-100">
   <!-- Navbar -->
-  <nav class="bg-blue-600 text-white p-4 flex justify-between">
-    <div class="text-xl font-bold">POS System</div>
+  <nav class="bg-blue-600 p-4 flex justify-between text-white">
+    <div class="text-xl font-bold">Hotel POS</div>
     <div class="space-x-4">
       <a href="hotelBooking.html" class="hover:underline">Booking</a>
-      <a href="pos.html" class="hover:underline font-semibold">POS</a>
+      <a href="pos.html" class="hover:underline">POS</a>
       <a href="index.html" class="hover:underline">Exit</a>
     </div>
   </nav>
 
-  <!-- POS Main Section -->
-  <div class="max-w-6xl mx-auto p-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Categories and Items -->
-      <div>
-        <h2 class="text-lg font-bold mb-2">Menu</h2>
-        <div class="space-y-4">
-          <div>
-            <h3 class="font-semibold">Food</h3>
-            <div class="grid grid-cols-2 gap-2">
-              <button class="item-btn" data-name="Burger" data-price="10">Burger - $10</button>
-              <button class="item-btn" data-name="Pasta" data-price="12">Pasta - $12</button>
-            </div>
-          </div>
-          <div>
-            <h3 class="font-semibold">Drinks</h3>
-            <div class="grid grid-cols-2 gap-2">
-              <button class="item-btn" data-name="Coffee" data-price="4">Coffee - $4</button>
-              <button class="item-btn" data-name="Juice" data-price="5">Juice - $5</button>
-            </div>
-          </div>
-          <div>
-            <h3 class="font-semibold">Services</h3>
-            <div class="grid grid-cols-2 gap-2">
-              <button class="item-btn" data-name="Laundry" data-price="15">Laundry - $15</button>
-              <button class="item-btn" data-name="Spa" data-price="30">Spa - $30</button>
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- POS Container -->
+  <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Categories & Items -->
+    <div class="md:col-span-3">
+      <h2 class="text-2xl font-semibold mb-2">Menu</h2>
+      <div id="categories" class="grid grid-cols-2 gap-4"></div>
+    </div>
 
-      <!-- Custom Charge -->
-      <div>
-        <h2 class="text-lg font-bold mb-2">Add Custom Charge</h2>
-        <input id="custom-desc" class="border p-2 w-full mb-2" placeholder="Description">
-        <input id="custom-amount" type="number" class="border p-2 w-full mb-2" placeholder="Amount">
-        <button onclick="addCustomItem()" class="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
-      </div>
-
-      <!-- Cart -->
-      <div>
-        <h2 class="text-lg font-bold mb-2">Cart</h2>
-        <ul id="cart-list" class="border p-2 h-64 overflow-y-auto mb-2"></ul>
-        <p class="font-semibold mb-2">Total: $<span id="total">0</span></p>
-        <button onclick="checkout()" class="bg-green-600 text-white px-4 py-2 rounded w-full">Checkout</button>
-      </div>
+    <!-- Cart Section -->
+    <div class="bg-white shadow p-4 rounded">
+      <h3 class="text-xl font-bold mb-2">Cart</h3>
+      <ul id="cart" class="mb-4 space-y-2"></ul>
+      <p class="font-bold">Total: £<span id="total">0.00</span></p>
+      <button onclick="checkout()" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Checkout</button>
     </div>
   </div>
 
-  <!-- Checkout Modal -->
-  <div id="checkout-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-6 rounded w-96 space-y-4">
-      <h2 class="text-xl font-bold">Complete Payment</h2>
-      <label class="block mb-1">Payment Method</label>
-      <select id="payment-method" class="border p-2 w-full">
-        <option value="cash">Cash</option>
-        <option value="card">Card</option>
-        <option value="room">Charge to Room</option>
-      </select>
-
-      <div id="room-selector" class="hidden mt-2">
-        <label class="block mb-1">Select Room</label>
-        <select id="room-number" class="border p-2 w-full">
-          <!-- Room options loaded dynamically -->
-        </select>
-      </div>
-
-      <div class="flex justify-end space-x-2">
-        <button onclick="confirmCheckout()" class="bg-green-600 text-white px-4 py-2 rounded">Confirm</button>
-        <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
-      </div>
-    </div>
-  </div>
+  <!-- Modals Container -->
+  <div id="modals"></div>
 
   <script>
+    const items = {
+      'Hot Drinks': [
+        { name: 'Coffee', price: 2.5 },
+        { name: 'Tea', price: 2.5 },
+        { name: 'Hot Chocolate', price: 3.0 }
+      ],
+      'Snacks': [
+        { name: 'Cereal Bars', price: 1.5 },
+        { name: 'Muffin', price: 1.0 },
+        { name: 'Cookie', price: 0.75 },
+        { name: 'Croissant', price: 0.75 },
+        { name: 'Donut', price: 1.0 }
+      ],
+      'Soft Drinks': [
+        { name: 'Coke Zero', price: 1.5 },
+        { name: 'Sprite', price: 1.5 },
+        { name: 'Fanta', price: 1.5 },
+        { name: 'Iced Tea', price: 1.5 }
+      ]
+    };
+
     const cart = [];
 
-    document.querySelectorAll('.item-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        cart.push({ name: btn.dataset.name, price: parseFloat(btn.dataset.price) });
-        renderCart();
-      });
-    });
+    function renderCategories() {
+      const container = document.getElementById('categories');
+      container.innerHTML = '';
+      for (const category in items) {
+        const box = document.createElement('div');
+        box.className = 'bg-white p-4 shadow rounded';
+        const title = document.createElement('h3');
+        title.textContent = category;
+        title.className = 'text-lg font-semibold mb-2';
 
-    function addCustomItem() {
-      const desc = document.getElementById('custom-desc').value;
-      const amount = parseFloat(document.getElementById('custom-amount').value);
-      if (desc && !isNaN(amount)) {
-        cart.push({ name: desc, price: amount });
-        renderCart();
-        document.getElementById('custom-desc').value = '';
-        document.getElementById('custom-amount').value = '';
+        items[category].forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = 'block w-full text-left hover:bg-blue-100 px-2 py-1 rounded';
+          btn.textContent = `${item.name} - £${item.price.toFixed(2)}`;
+          btn.onclick = () => addToCart(item);
+          box.appendChild(btn);
+        });
+
+        box.prepend(title);
+        container.appendChild(box);
       }
+    }
+
+    function addToCart(item) {
+      cart.push(item);
+      renderCart();
     }
 
     function renderCart() {
-      const list = document.getElementById('cart-list');
-      list.innerHTML = '';
+      const cartList = document.getElementById('cart');
+      const totalSpan = document.getElementById('total');
+      cartList.innerHTML = '';
       let total = 0;
-      cart.forEach((item, i) => {
+      cart.forEach((item, index) => {
         total += item.price;
         const li = document.createElement('li');
-        li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
-        list.appendChild(li);
+        li.className = 'flex justify-between';
+        li.innerHTML = `${item.name} <span>£${item.price.toFixed(2)}</span>`;
+        cartList.appendChild(li);
       });
-      document.getElementById('total').textContent = total.toFixed(2);
+      totalSpan.textContent = total.toFixed(2);
     }
 
     function checkout() {
-      document.getElementById('checkout-modal').classList.remove('hidden');
-      const roomDropdown = document.getElementById('room-number');
-      roomDropdown.innerHTML = '';
-      const rooms = JSON.parse(localStorage.getItem('hotelRooms') || '[]');
-      rooms.forEach(r => {
-        const option = document.createElement('option');
-        option.value = r.number;
-        option.textContent = `Room ${r.number}`;
-        roomDropdown.appendChild(option);
-      });
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      if (total === 0) return;
+
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+
+      modal.innerHTML = `
+        <div class="bg-white p-6 rounded shadow w-96">
+          <h2 class="text-xl font-bold mb-4">Choose Payment Method</h2>
+          <button class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded mb-2" onclick="payCash(${total}); this.closest('.fixed').remove()">Cash</button>
+          <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded mb-2" onclick="payCard(${total}); this.closest('.fixed').remove()">Card</button>
+          <button class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded" onclick="payRoom(${total}); this.closest('.fixed').remove()">Charge to Room</button>
+        </div>
+      `;
+
+      document.getElementById('modals').appendChild(modal);
     }
 
-    function confirmCheckout() {
-      const method = document.getElementById('payment-method').value;
-      if (method === 'room') {
-        const room = document.getElementById('room-number').value;
-        const current = JSON.parse(localStorage.getItem(`charges-${room}`) || '[]');
-        cart.forEach(item => current.push(item));
-        localStorage.setItem(`charges-${room}`, JSON.stringify(current));
+    function payCash(total) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+
+      modal.innerHTML = `
+        <div class="bg-white p-6 rounded shadow w-96">
+          <h2 class="text-xl font-bold mb-4">Cash Payment</h2>
+          <p>Total: £${total.toFixed(2)}</p>
+          <input type="number" placeholder="Amount Given" class="w-full border p-2 my-2" id="cashGiven" />
+          <button class="w-full bg-green-600 text-white py-2 rounded" onclick="confirmCash(${total})">Confirm</button>
+        </div>
+      `;
+
+      document.getElementById('modals').appendChild(modal);
+    }
+
+    function confirmCash(total) {
+      const given = parseFloat(document.getElementById('cashGiven').value);
+      if (isNaN(given) || given < total) {
+        alert('Not enough cash given');
+        return;
       }
+      const change = given - total;
+      alert(`Transaction successful. Change: £${change.toFixed(2)}`);
       cart.length = 0;
       renderCart();
-      closeModal();
+      document.getElementById('modals').innerHTML = '';
     }
 
-    function closeModal() {
-      document.getElementById('checkout-modal').classList.add('hidden');
+    function payCard(total) {
+      const confirmed = confirm(`Card transaction of £${total.toFixed(2)} successful?`);
+      if (confirmed) {
+        alert('Card payment completed');
+        cart.length = 0;
+        renderCart();
+      }
     }
 
-    document.getElementById('payment-method').addEventListener('change', e => {
-      document.getElementById('room-selector').classList.toggle('hidden', e.target.value !== 'room');
-    });
+    function payRoom(total) {
+      const checkedInRooms = JSON.parse(localStorage.getItem('checkedInGuests') || '[]');
+      const roomOptions = checkedInRooms.map(g => `<option value="${g.room}">${g.name} - Room ${g.room}</option>`).join('');
+
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
+
+      modal.innerHTML = `
+        <div class="bg-white p-6 rounded shadow w-96">
+          <h2 class="text-xl font-bold mb-4">Charge to Room</h2>
+          <label>Select Room:</label>
+          <select id="roomSelect" class="w-full border p-2 my-2">${roomOptions}</select>
+          <button class="w-full bg-yellow-600 text-white py-2 rounded" onclick="confirmRoomCharge(${total})">Confirm Charge</button>
+        </div>
+      `;
+
+      document.getElementById('modals').appendChild(modal);
+    }
+
+    function confirmRoomCharge(total) {
+      const selectedRoom = document.getElementById('roomSelect').value;
+      if (!selectedRoom) return;
+      alert(`Charged £${total.toFixed(2)} to Room ${selectedRoom}`);
+      cart.length = 0;
+      renderCart();
+      document.getElementById('modals').innerHTML = '';
+    }
+
+    renderCategories();
   </script>
 </body>
 </html>
+
