@@ -1,192 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hotel POS</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POS System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #4a90e2;
+      padding: 10px 20px;
+      color: white;
+    }
+    .navbar h1 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+    .navbar .nav-buttons button {
+      margin-left: 10px;
+      padding: 8px 12px;
+      background-color: white;
+      color: #4a90e2;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .container {
+      padding: 20px;
+    }
+    .category {
+      margin-top: 20px;
+    }
+    .category h2 {
+      color: #4a90e2;
+    }
+    .items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .item {
+      background-color: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      width: 120px;
+      text-align: center;
+    }
+    #cart {
+      margin-top: 30px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #checkoutModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    #checkoutModal .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      width: 400px;
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
-  <!-- Navbar -->
-  <nav class="bg-blue-600 p-4 flex justify-between text-white">
-    <div class="text-xl font-bold">Hotel POS</div>
-    <div class="space-x-4">
-      <a href="hotelBooking.html" class="hover:underline">Booking</a>
-      <a href="pos.html" class="hover:underline">POS</a>
-      <a href="index.html" class="hover:underline">Exit</a>
+<body>
+  <div class="navbar">
+    <h1>POS System</h1>
+    <div class="nav-buttons">
+      <button onclick="window.location.href='hotelBooking.html'">Booking</button>
+      <button onclick="window.location.href='index.html'">Exit</button>
     </div>
-  </nav>
-
-  <!-- POS Container -->
-  <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-    <!-- Categories & Items -->
-    <div class="md:col-span-3">
-      <h2 class="text-2xl font-semibold mb-2">Menu</h2>
-      <div id="categories" class="grid grid-cols-2 gap-4"></div>
-    </div>
-
-    <!-- Cart Section -->
-    <div class="bg-white shadow p-4 rounded">
-      <h3 class="text-xl font-bold mb-2">Cart</h3>
-      <ul id="cart" class="mb-4 space-y-2"></ul>
-      <p class="font-bold">Total: £<span id="total">0.00</span></p>
-      <button onclick="checkout()" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Checkout</button>
+  </div>
+  <div class="container">
+    <div id="categories"></div>
+    <div id="cart">
+      <h3>Cart</h3>
+      <ul id="cartItems"></ul>
+      <p>Total: £<span id="total">0.00</span></p>
+      <button onclick="openCheckoutModal()">Checkout</button>
     </div>
   </div>
 
-  <!-- Modals Container -->
-  <div id="modals"></div>
+  <!-- Checkout Modal -->
+  <div id="checkoutModal">
+    <div class="modal-content">
+      <h3>Checkout</h3>
+      <p>Total: £<span id="checkoutTotal"></span></p>
+      <label>Payment Method:</label>
+      <select id="paymentMethod" onchange="handlePaymentMethodChange()">
+        <option value="cash">Cash</option>
+        <option value="card">Card</option>
+        <option value="room">Room</option>
+      </select>
+
+      <div id="roomOptions" style="display: none; margin-top: 10px;">
+        <label>Charge to Room:</label>
+        <select id="roomDropdown"></select>
+      </div>
+
+      <div id="cashSection" style="margin-top: 10px;">
+        <label>Amount Given: £</label>
+        <input type="number" id="cashGiven" />
+      </div>
+
+      <button onclick="confirmTransaction()">Confirm</button>
+    </div>
+  </div>
 
   <script>
     const items = {
-      'Hot Drinks': [
-        { name: 'Coffee', price: 2.5 },
-        { name: 'Tea', price: 2.5 },
-        { name: 'Hot Chocolate', price: 3.0 }
+      "Hot Drinks": [
+        { name: "Coffee", price: 2.5 },
+        { name: "Tea", price: 2.5 },
+        { name: "Hot Chocolate", price: 3 }
       ],
-      'Snacks': [
-        { name: 'Cereal Bars', price: 1.5 },
-        { name: 'Muffin', price: 1.0 },
-        { name: 'Cookie', price: 0.75 },
-        { name: 'Croissant', price: 0.75 },
-        { name: 'Donut', price: 1.0 }
+      "Snacks": [
+        { name: "Cereal Bars", price: 1.5 },
+        { name: "Muffin", price: 1 },
+        { name: "Cookie", price: 0.75 },
+        { name: "Croissant", price: 0.75 },
+        { name: "Donut", price: 1 }
       ],
-      'Soft Drinks': [
-        { name: 'Coke Zero', price: 1.5 },
-        { name: 'Sprite', price: 1.5 },
-        { name: 'Fanta', price: 1.5 },
-        { name: 'Iced Tea', price: 1.5 }
+      "Soft Drinks": [
+        { name: "Coke Zero", price: 1.5 },
+        { name: "Sprite", price: 1.5 },
+        { name: "Fanta", price: 1.5 },
+        { name: "Iced Tea", price: 1.5 }
       ]
     };
 
-    const cart = [];
+    let cart = [];
 
     function renderCategories() {
-      const container = document.getElementById('categories');
-      container.innerHTML = '';
-      for (const category in items) {
-        const box = document.createElement('div');
-        box.className = 'bg-white p-4 shadow rounded';
-        const title = document.createElement('h3');
-        title.textContent = category;
-        title.className = 'text-lg font-semibold mb-2';
+      const container = document.getElementById("categories");
+      for (let category in items) {
+        const section = document.createElement("div");
+        section.className = "category";
+        section.innerHTML = `<h2>${category}</h2>`;
+
+        const itemContainer = document.createElement("div");
+        itemContainer.className = "items";
 
         items[category].forEach(item => {
-          const btn = document.createElement('button');
-          btn.className = 'block w-full text-left hover:bg-blue-100 px-2 py-1 rounded';
-          btn.textContent = `${item.name} - £${item.price.toFixed(2)}`;
-          btn.onclick = () => addToCart(item);
-          box.appendChild(btn);
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerText = `${item.name} - £${item.price.toFixed(2)}`;
+          div.onclick = () => addToCart(item);
+          itemContainer.appendChild(div);
         });
 
-        box.prepend(title);
-        container.appendChild(box);
+        section.appendChild(itemContainer);
+        container.appendChild(section);
       }
     }
 
     function addToCart(item) {
       cart.push(item);
-      renderCart();
+      updateCart();
     }
 
-    function renderCart() {
-      const cartList = document.getElementById('cart');
-      const totalSpan = document.getElementById('total');
-      cartList.innerHTML = '';
+    function updateCart() {
+      const cartList = document.getElementById("cartItems");
+      cartList.innerHTML = "";
       let total = 0;
-      cart.forEach((item, index) => {
-        total += item.price;
-        const li = document.createElement('li');
-        li.className = 'flex justify-between';
-        li.innerHTML = `${item.name} <span>£${item.price.toFixed(2)}</span>`;
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.innerText = `${item.name} - £${item.price.toFixed(2)}`;
         cartList.appendChild(li);
+        total += item.price;
       });
-      totalSpan.textContent = total.toFixed(2);
+      document.getElementById("total").innerText = total.toFixed(2);
     }
 
-    function checkout() {
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      if (total === 0) return;
-
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
-
-      modal.innerHTML = `
-        <div class="bg-white p-6 rounded shadow w-96">
-          <h2 class="text-xl font-bold mb-4">Choose Payment Method</h2>
-          <button class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded mb-2" onclick="payCash(${total}); this.closest('.fixed').remove()">Cash</button>
-          <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded mb-2" onclick="payCard(${total}); this.closest('.fixed').remove()">Card</button>
-          <button class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded" onclick="payRoom(${total}); this.closest('.fixed').remove()">Charge to Room</button>
-        </div>
-      `;
-
-      document.getElementById('modals').appendChild(modal);
+    function openCheckoutModal() {
+      document.getElementById("checkoutTotal").innerText = document.getElementById("total").innerText;
+      document.getElementById("checkoutModal").style.display = "flex";
+      populateRoomDropdown();
     }
 
-    function payCash(total) {
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
-
-      modal.innerHTML = `
-        <div class="bg-white p-6 rounded shadow w-96">
-          <h2 class="text-xl font-bold mb-4">Cash Payment</h2>
-          <p>Total: £${total.toFixed(2)}</p>
-          <input type="number" placeholder="Amount Given" class="w-full border p-2 my-2" id="cashGiven" />
-          <button class="w-full bg-green-600 text-white py-2 rounded" onclick="confirmCash(${total})">Confirm</button>
-        </div>
-      `;
-
-      document.getElementById('modals').appendChild(modal);
+    function handlePaymentMethodChange() {
+      const method = document.getElementById("paymentMethod").value;
+      document.getElementById("roomOptions").style.display = method === "room" ? "block" : "none";
+      document.getElementById("cashSection").style.display = method === "cash" ? "block" : "none";
     }
 
-    function confirmCash(total) {
-      const given = parseFloat(document.getElementById('cashGiven').value);
-      if (isNaN(given) || given < total) {
-        alert('Not enough cash given');
-        return;
+    function populateRoomDropdown() {
+      const dropdown = document.getElementById("roomDropdown");
+      dropdown.innerHTML = "";
+      const bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+      const uniqueRooms = [...new Set(bookings.map(b => b.room))];
+      uniqueRooms.forEach(room => {
+        const option = document.createElement("option");
+        option.value = room;
+        option.text = `Room ${room}`;
+        dropdown.appendChild(option);
+      });
+    }
+
+    function confirmTransaction() {
+      const method = document.getElementById("paymentMethod").value;
+      const total = parseFloat(document.getElementById("total").innerText);
+      if (method === "cash") {
+        const cash = parseFloat(document.getElementById("cashGiven").value);
+        if (isNaN(cash) || cash < total) {
+          alert("Not enough cash provided.");
+          return;
+        }
+        const change = (cash - total).toFixed(2);
+        alert(`Transaction successful. Change: £${change}`);
+      } else if (method === "card") {
+        alert("Transaction successful by card.");
+      } else if (method === "room") {
+        const room = document.getElementById("roomDropdown").value;
+        alert(`Transaction charged to Room ${room}.`);
+        // Save transaction to room
+        let charges = JSON.parse(localStorage.getItem("charges")) || {};
+        if (!charges[room]) charges[room] = [];
+        cart.forEach(item => charges[room].push(item));
+        localStorage.setItem("charges", JSON.stringify(charges));
       }
-      const change = given - total;
-      alert(`Transaction successful. Change: £${change.toFixed(2)}`);
-      cart.length = 0;
-      renderCart();
-      document.getElementById('modals').innerHTML = '';
-    }
-
-    function payCard(total) {
-      const confirmed = confirm(`Card transaction of £${total.toFixed(2)} successful?`);
-      if (confirmed) {
-        alert('Card payment completed');
-        cart.length = 0;
-        renderCart();
-      }
-    }
-
-    function payRoom(total) {
-      const checkedInRooms = JSON.parse(localStorage.getItem('checkedInGuests') || '[]');
-      const roomOptions = checkedInRooms.map(g => `<option value="${g.room}">${g.name} - Room ${g.room}</option>`).join('');
-
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center';
-
-      modal.innerHTML = `
-        <div class="bg-white p-6 rounded shadow w-96">
-          <h2 class="text-xl font-bold mb-4">Charge to Room</h2>
-          <label>Select Room:</label>
-          <select id="roomSelect" class="w-full border p-2 my-2">${roomOptions}</select>
-          <button class="w-full bg-yellow-600 text-white py-2 rounded" onclick="confirmRoomCharge(${total})">Confirm Charge</button>
-        </div>
-      `;
-
-      document.getElementById('modals').appendChild(modal);
-    }
-
-    function confirmRoomCharge(total) {
-      const selectedRoom = document.getElementById('roomSelect').value;
-      if (!selectedRoom) return;
-      alert(`Charged £${total.toFixed(2)} to Room ${selectedRoom}`);
-      cart.length = 0;
-      renderCart();
-      document.getElementById('modals').innerHTML = '';
+      cart = [];
+      updateCart();
+      document.getElementById("checkoutModal").style.display = "none";
     }
 
     renderCategories();
