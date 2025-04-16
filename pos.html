@@ -1,171 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS - Hotel System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9fa;
-            color: #495057;
-        }
-
-        .navbar {
-            background-color: #007bff;
-        }
-        .navbar-brand {
-            color: white !important;
-            font-weight: bold;
-        }
-
-        /* Table Styling */
-        .table td, .table th {
-            padding: 15px;
-        }
-
-        .modal-header {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .btn-custom {
-            border-radius: 50px;
-            padding: 10px 25px;
-        }
-
-        /* Notification Styling */
-        .notification {
-            padding: 20px;
-            background-color: #28a745;
-            color: white;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #2193b0, #6dd5ed);
+      color: #222;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .navbar {
+      background-color: #00587a;
+    }
+    .navbar-brand, .nav-link, .navbar-text {
+      color: #fff;
+    }
+    .pos-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    .item-btn {
+      border-radius: 20px;
+      margin: 5px;
+    }
+    .receipt {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 0.9em;
+    }
+  </style>
 </head>
 <body>
-
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light">
+  <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Hotel POS</a>
-        <a href="index.html" class="btn btn-danger mx-2">Logout</a>
+      <a class="navbar-brand" href="index.html">Hotel System</a>
+      <div class="d-flex">
+        <a class="btn btn-light me-2" href="index.html">Exit</a>
+      </div>
     </div>
-</nav>
+  </nav>
 
-<!-- POS System -->
-<div class="container mt-5">
-    <h3>POS - Manage Bookings and Payments</h3>
-
-    <h5>Current Bookings</h5>
-    <table class="table table-striped" id="bookingTable">
-        <thead>
-            <tr>
-                <th>Room</th>
-                <th>Guest Name</th>
-                <th>Total Cost</th>
-                <th>Tab</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="bookingTableBody">
-            <!-- Booking data will populate dynamically -->
-        </tbody>
-    </table>
-
-    <!-- Payment Modal -->
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel">Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="paymentForm">
-                        <div class="mb-3">
-                            <label for="paymentAmount" class="form-label">Amount to Pay (£)</label>
-                            <input type="number" class="form-control" id="paymentAmount" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="processPaymentBtn">Process Payment</button>
-                </div>
-            </div>
+  <div class="pos-container">
+    <h3 class="mb-4">POS Terminal</h3>
+    <div class="row">
+      <div class="col-md-7">
+        <div class="d-flex flex-wrap">
+          <button class="btn btn-primary item-btn" onclick="addItem('Room Service', 25)">Room Service - £25</button>
+          <button class="btn btn-primary item-btn" onclick="addItem('Spa', 40)">Spa - £40</button>
+          <button class="btn btn-primary item-btn" onclick="addItem('Laundry', 15)">Laundry - £15</button>
+          <button class="btn btn-primary item-btn" onclick="addItem('Breakfast', 10)">Breakfast - £10</button>
+          <button class="btn btn-primary item-btn" onclick="addItem('Mini Bar', 8)">Mini Bar - £8</button>
         </div>
+      </div>
+      <div class="col-md-5">
+        <h5>Receipt</h5>
+        <div class="receipt" id="receipt"></div>
+        <div class="mt-2">
+          <strong>Total: £<span id="totalAmount">0</span></strong>
+        </div>
+        <button class="btn btn-success mt-3" onclick="saveToGuest()">Charge to Room</button>
+        <div class="mt-2 text-success d-none" id="successMessage">Charged to guest room successfully.</div>
+      </div>
     </div>
+  </div>
 
-    <!-- Notification -->
-    <div class="notification" id="paymentNotification">
-        <p><strong>Payment Processed!</strong></p>
-        <p>The payment has been successfully processed.</p>
-    </div>
-</div>
+  <script>
+    let posItems = [];
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-<script>
-    // Simulated bookings data
-    let bookings = [
-        { roomNumber: "101", guestName: "John Doe", totalCost: 200, tab: 50, paid: false },
-        { roomNumber: "102", guestName: "Jane Smith", totalCost: 300, tab: 50, paid: false },
-        { roomNumber: "103", guestName: "Alice Johnson", totalCost: 150, tab: 50, paid: false },
-    ];
-
-    // Display current bookings in POS
-    function displayBookings() {
-        const bookingTableBody = document.getElementById('bookingTableBody');
-        bookingTableBody.innerHTML = '';
-        bookings.forEach((booking, index) => {
-            let row = bookingTableBody.insertRow();
-            row.innerHTML = `
-                <td>${booking.roomNumber}</td>
-                <td>${booking.guestName}</td>
-                <td>£${booking.totalCost}</td>
-                <td>£${booking.tab}</td>
-                <td>
-                    <button class="btn btn-success btn-custom" onclick="openPaymentModal(${index})">${booking.paid ? 'Paid' : 'Pay'}</button>
-                </td>
-            `;
-        });
+    function addItem(name, price) {
+      posItems.push({ name, price });
+      updateReceipt();
     }
 
-    // Open payment modal and handle the payment process
-    function openPaymentModal(index) {
-        const booking = bookings[index];
-        if (booking.paid) {
-            alert("This booking has already been paid.");
-            return;
-        }
+    function updateReceipt() {
+      const receiptDiv = document.getElementById("receipt");
+      receiptDiv.innerHTML = "";
+      let total = 0;
 
-        document.getElementById('paymentAmount').value = booking.totalCost + booking.tab; // Set the full payment amount
-        const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
-        modal.show();
+      posItems.forEach(item => {
+        const p = document.createElement("p");
+        p.textContent = `${item.name}: £${item.price}`;
+        receiptDiv.appendChild(p);
+        total += item.price;
+      });
 
-        // Handle payment processing
-        document.getElementById('processPaymentBtn').onclick = function() {
-            const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
-            if (paymentAmount >= booking.totalCost + booking.tab) {
-                bookings[index].paid = true;
-                displayBookings();
-                document.getElementById('paymentNotification').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('paymentNotification').style.display = 'none';
-                }, 3000);
-                modal.hide();
-            } else {
-                alert("Insufficient payment.");
-            }
-        };
+      document.getElementById("totalAmount").textContent = total;
     }
 
-    // Initialize the POS system
-    displayBookings();
-</script>
+    function saveToGuest() {
+      let guestName = prompt("Enter guest name to charge");
+      if (!guestName) return;
+
+      let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+      let booking = bookings.find(b => b.name.toLowerCase() === guestName.toLowerCase());
+
+      if (!booking) {
+        alert("Guest not found");
+        return;
+      }
+
+      let totalCharge = posItems.reduce((acc, item) => acc + item.price, 0);
+      booking.total += totalCharge;
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+
+      document.getElementById("successMessage").classList.remove("d-none");
+      setTimeout(() => {
+        document.getElementById("successMessage").classList.add("d-none");
+        posItems = [];
+        updateReceipt();
+      }, 2000);
+    }
+  </script>
 </body>
 </html>
+
