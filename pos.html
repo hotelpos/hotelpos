@@ -1,205 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Booking POS</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .container {
-      margin-top: 30px;
-    }
-    .card {
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      margin-bottom: 15px;
-    }
-    .category-title {
-      font-weight: bold;
-      font-size: 1.2rem;
-      border-bottom: 1px solid #ccc;
-      margin-bottom: 10px;
-      color: #fff;
-    }
-    .navbar {
-      margin-bottom: 20px;
-    }
-    .btn-custom {
-      border-radius: 30px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel POS</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script defer src="https://unpkg.com/@popperjs/core@2"></script>
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Booking POS</a>
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="hotelBooking.html">Booking</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">Order History</a></li>
-        </ul>
-      </div>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Navbar -->
+  <nav class="bg-blue-600 text-white p-4 flex justify-between">
+    <div class="text-xl font-bold">POS System</div>
+    <div class="space-x-4">
+      <a href="hotelBooking.html" class="hover:underline">Booking</a>
+      <a href="pos.html" class="hover:underline font-semibold">POS</a>
+      <a href="index.html" class="hover:underline">Exit</a>
     </div>
   </nav>
 
-  <div class="container">
-    <div class="row">
-      <div class="col-md-8">
-        <div id="itemList"></div>
-        <div class="card p-3 bg-light text-dark">
-          <h5>Custom Charge</h5>
-          <input type="text" id="customDesc" class="form-control mb-2" placeholder="Description">
-          <input type="number" id="customPrice" class="form-control mb-2" placeholder="Amount">
-          <button class="btn btn-primary" onclick="addCustomCharge()">Add Charge</button>
+  <!-- POS Main Section -->
+  <div class="max-w-6xl mx-auto p-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Categories and Items -->
+      <div>
+        <h2 class="text-lg font-bold mb-2">Menu</h2>
+        <div class="space-y-4">
+          <div>
+            <h3 class="font-semibold">Food</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="item-btn" data-name="Burger" data-price="10">Burger - $10</button>
+              <button class="item-btn" data-name="Pasta" data-price="12">Pasta - $12</button>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold">Drinks</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="item-btn" data-name="Coffee" data-price="4">Coffee - $4</button>
+              <button class="item-btn" data-name="Juice" data-price="5">Juice - $5</button>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold">Services</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="item-btn" data-name="Laundry" data-price="15">Laundry - $15</button>
+              <button class="item-btn" data-name="Spa" data-price="30">Spa - $30</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="card p-3 bg-light text-dark">
-          <h5>Cart</h5>
-          <ul id="cartItems" class="list-group mb-2"></ul>
-          <h6>Total: <span id="totalAmount">0</span></h6>
-          <button class="btn btn-success btn-custom" onclick="showCheckoutModal()">Checkout</button>
-        </div>
+      <!-- Custom Charge -->
+      <div>
+        <h2 class="text-lg font-bold mb-2">Add Custom Charge</h2>
+        <input id="custom-desc" class="border p-2 w-full mb-2" placeholder="Description">
+        <input id="custom-amount" type="number" class="border p-2 w-full mb-2" placeholder="Amount">
+        <button onclick="addCustomItem()" class="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
+      </div>
+
+      <!-- Cart -->
+      <div>
+        <h2 class="text-lg font-bold mb-2">Cart</h2>
+        <ul id="cart-list" class="border p-2 h-64 overflow-y-auto mb-2"></ul>
+        <p class="font-semibold mb-2">Total: $<span id="total">0</span></p>
+        <button onclick="checkout()" class="bg-green-600 text-white px-4 py-2 rounded w-full">Checkout</button>
       </div>
     </div>
   </div>
 
   <!-- Checkout Modal -->
-  <div class="modal fade" id="checkoutModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content text-dark">
-        <div class="modal-header">
-          <h5 class="modal-title">Select Payment Method</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <select id="paymentType" class="form-select mb-3">
-            <option value="cash">Cash</option>
-            <option value="card">Card</option>
-            <option value="room">Charge to Room</option>
-          </select>
-          <select id="roomSelect" class="form-select d-none">
-            <option value="">Select Room</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" onclick="finalizeCheckout()">Confirm</button>
-        </div>
+  <div id="checkout-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded w-96 space-y-4">
+      <h2 class="text-xl font-bold">Complete Payment</h2>
+      <label class="block mb-1">Payment Method</label>
+      <select id="payment-method" class="border p-2 w-full">
+        <option value="cash">Cash</option>
+        <option value="card">Card</option>
+        <option value="room">Charge to Room</option>
+      </select>
+
+      <div id="room-selector" class="hidden mt-2">
+        <label class="block mb-1">Select Room</label>
+        <select id="room-number" class="border p-2 w-full">
+          <!-- Room options loaded dynamically -->
+        </select>
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button onclick="confirmCheckout()" class="bg-green-600 text-white px-4 py-2 rounded">Confirm</button>
+        <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
       </div>
     </div>
   </div>
 
   <script>
-    const items = {
-      Drinks: [
-        { name: 'Coffee', price: 2.5 },
-        { name: 'Tea', price: 2.0 },
-        { name: 'Juice', price: 3.0 },
-        { name: 'Water', price: 1.5 },
-      ],
-      Food: [
-        { name: 'Sandwich', price: 5.0 },
-        { name: 'Burger', price: 8.5 },
-        { name: 'Salad', price: 6.0 },
-        { name: 'Pizza Slice', price: 3.5 },
-      ],
-      Snacks: [
-        { name: 'Chips', price: 1.5 },
-        { name: 'Chocolate', price: 2.0 },
-        { name: 'Nuts', price: 2.5 },
-      ]
-    };
-
     const cart = [];
-    const roomOptions = ['101', '102', '103', '104', '105', '106'];
 
-    function renderItems() {
-      const itemList = document.getElementById('itemList');
-      itemList.innerHTML = '';
-      for (const category in items) {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.classList.add('mb-3');
-        categoryDiv.innerHTML = `<div class='category-title'>${category}</div>`;
-        items[category].forEach(item => {
-          const btn = document.createElement('button');
-          btn.className = 'btn btn-light me-2 mb-2';
-          btn.innerText = `${item.name} - £${item.price.toFixed(2)}`;
-          btn.onclick = () => addToCart(item.name, item.price);
-          categoryDiv.appendChild(btn);
-        });
-        itemList.appendChild(categoryDiv);
-      }
-    }
-
-    function addToCart(name, price) {
-      cart.push({ name, price });
-      updateCart();
-    }
-
-    function addCustomCharge() {
-      const desc = document.getElementById('customDesc').value;
-      const price = parseFloat(document.getElementById('customPrice').value);
-      if (desc && price) {
-        addToCart(desc, price);
-        document.getElementById('customDesc').value = '';
-        document.getElementById('customPrice').value = '';
-      }
-    }
-
-    function updateCart() {
-      const cartList = document.getElementById('cartItems');
-      cartList.innerHTML = '';
-      let total = 0;
-      cart.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item';
-        li.innerText = `${item.name} - £${item.price.toFixed(2)}`;
-        cartList.appendChild(li);
-        total += item.price;
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cart.push({ name: btn.dataset.name, price: parseFloat(btn.dataset.price) });
+        renderCart();
       });
-      document.getElementById('totalAmount').innerText = '£' + total.toFixed(2);
-    }
-
-    function showCheckoutModal() {
-      if (cart.length === 0) return;
-      const roomDropdown = document.getElementById('roomSelect');
-      roomDropdown.innerHTML = '<option value="">Select Room</option>' + roomOptions.map(r => `<option value="${r}">${r}</option>`).join('');
-      document.getElementById('paymentType').value = 'cash';
-      roomDropdown.classList.add('d-none');
-      new bootstrap.Modal(document.getElementById('checkoutModal')).show();
-    }
-
-    document.getElementById('paymentType').addEventListener('change', e => {
-      const roomSelect = document.getElementById('roomSelect');
-      if (e.target.value === 'room') {
-        roomSelect.classList.remove('d-none');
-      } else {
-        roomSelect.classList.add('d-none');
-      }
     });
 
-    function finalizeCheckout() {
-      const type = document.getElementById('paymentType').value;
-      const room = document.getElementById('roomSelect').value;
-      if (type === 'room' && !room) return;
-      const charges = JSON.parse(localStorage.getItem('posCharges') || '{}');
-      if (type === 'room') {
-        charges[room] = (charges[room] || []).concat(cart);
-        localStorage.setItem('posCharges', JSON.stringify(charges));
+    function addCustomItem() {
+      const desc = document.getElementById('custom-desc').value;
+      const amount = parseFloat(document.getElementById('custom-amount').value);
+      if (desc && !isNaN(amount)) {
+        cart.push({ name: desc, price: amount });
+        renderCart();
+        document.getElementById('custom-desc').value = '';
+        document.getElementById('custom-amount').value = '';
       }
-      cart.length = 0;
-      updateCart();
-      bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
     }
 
-    renderItems();
+    function renderCart() {
+      const list = document.getElementById('cart-list');
+      list.innerHTML = '';
+      let total = 0;
+      cart.forEach((item, i) => {
+        total += item.price;
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
+        list.appendChild(li);
+      });
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    function checkout() {
+      document.getElementById('checkout-modal').classList.remove('hidden');
+      const roomDropdown = document.getElementById('room-number');
+      roomDropdown.innerHTML = '';
+      const rooms = JSON.parse(localStorage.getItem('hotelRooms') || '[]');
+      rooms.forEach(r => {
+        const option = document.createElement('option');
+        option.value = r.number;
+        option.textContent = `Room ${r.number}`;
+        roomDropdown.appendChild(option);
+      });
+    }
+
+    function confirmCheckout() {
+      const method = document.getElementById('payment-method').value;
+      if (method === 'room') {
+        const room = document.getElementById('room-number').value;
+        const current = JSON.parse(localStorage.getItem(`charges-${room}`) || '[]');
+        cart.forEach(item => current.push(item));
+        localStorage.setItem(`charges-${room}`, JSON.stringify(current));
+      }
+      cart.length = 0;
+      renderCart();
+      closeModal();
+    }
+
+    function closeModal() {
+      document.getElementById('checkout-modal').classList.add('hidden');
+    }
+
+    document.getElementById('payment-method').addEventListener('change', e => {
+      document.getElementById('room-selector').classList.toggle('hidden', e.target.value !== 'room');
+    });
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
