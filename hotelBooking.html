@@ -1,252 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Booking</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f8f9fa;
-            color: #495057;
-        }
-
-        /* Navbar */
-        .navbar {
-            background-color: #007bff;
-        }
-        .navbar-brand {
-            color: white !important;
-            font-weight: bold;
-        }
-
-        /* Buttons */
-        .btn-custom {
-            border-radius: 50px;
-            padding: 10px 25px;
-        }
-        .btn-primary {
-            background-color: #007bff;
-            border: none;
-        }
-        .btn-danger {
-            background-color: #dc3545;
-            border: none;
-        }
-        .btn-warning {
-            background-color: #ffc107;
-            border: none;
-        }
-
-        .container {
-            max-width: 900px;
-            margin-top: 20px;
-        }
-
-        /* Table styling */
-        .room-table td, .room-table th {
-            padding: 15px;
-        }
-
-        /* Modal Styling */
-        .modal-content {
-            border-radius: 12px;
-        }
-        .modal-header {
-            background-color: #007bff;
-            color: white;
-        }
-        .modal-footer button {
-            border-radius: 50px;
-        }
-
-        /* Breakdown & Notification */
-        .notification {
-            padding: 20px;
-            background-color: #28a745;
-            color: white;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Hotel Booking System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      font-family: 'Segoe UI', sans-serif;
+      padding-bottom: 50px;
+    }
+    .navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .room-bubble {
+      display: inline-block;
+      width: 160px;
+      margin: 15px;
+      padding: 15px;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: all 0.3s ease-in-out;
+    }
+    .room-bubble.clean { border: 3px solid #28a745; }
+    .room-bubble.dirty { border: 3px solid #dc3545; }
+    .room-bubble.checkedin { border: 3px solid #ffc107; }
+    .room-bubble h5 { margin-bottom: 10px; }
+    .modal-content { border-radius: 15px; }
+    .btn-rounded { border-radius: 20px; }
+  </style>
 </head>
 <body>
-
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light">
+  <nav class="navbar navbar-expand-lg">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Hotel System</a>
-        <a href="pos.html" class="btn btn-warning mx-2">POS</a>
-        <a href="index.html" class="btn btn-danger mx-2">Logout</a>
-    </div>
-</nav>
-
-<!-- Date Selector -->
-<div class="container mt-4">
-    <label for="dateSelector">Select Date:</label>
-    <input type="date" class="form-control" id="dateSelector">
-</div>
-
-<!-- Available Rooms -->
-<div class="container mt-5">
-    <h3>Available Rooms</h3>
-    <table class="table table-striped room-table">
-        <thead>
-            <tr>
-                <th scope="col">Room</th>
-                <th scope="col">Status</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody id="roomBody">
-            <!-- Room data will populate dynamically -->
-        </tbody>
-    </table>
-
-    <!-- Create Booking Button -->
-    <button class="btn btn-primary btn-custom" data-bs-toggle="modal" data-bs-target="#createBookingModal">Create New Booking</button>
-</div>
-
-<!-- Modal to Create New Booking -->
-<div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createBookingModalLabel">Create Booking</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="bookingForm">
-                    <div class="mb-3">
-                        <label for="guestName" class="form-label">Guest Name</label>
-                        <input type="text" class="form-control" id="guestName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="arrivalDate" class="form-label">Arrival Date</label>
-                        <input type="date" class="form-control" id="arrivalDate" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="departureDate" class="form-label">Departure Date</label>
-                        <input type="date" class="form-control" id="departureDate" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="roomNumber" class="form-label">Select Room</label>
-                        <select class="form-control" id="roomNumber" required>
-                            <!-- Available rooms will populate here -->
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-warning btn-custom" id="findRoomBtn">Find Available Room</button>
-                    <div class="mb-3 mt-3">
-                        <label for="tab" class="form-label">Add Tab (£50 Deposit)</label>
-                        <input type="checkbox" id="tab"> Add £50 deposit
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="confirmBookingBtn">Confirm Booking</button>
-            </div>
+      <a class="navbar-brand fw-bold text-primary" href="#">Hotel System</a>
+      <div class="d-flex">
+        <a href="pos.html" class="btn btn-outline-primary me-2 btn-rounded">POS</a>
+        <a href="index.html" class="btn btn-outline-danger me-2 btn-rounded">Exit</a>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle btn-rounded" data-bs-toggle="dropdown">Admin</button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="showUpcoming()">Upcoming</a></li>
+            <li><a class="dropdown-item" href="#" onclick="showHistory()">History</a></li>
+            <li><a class="dropdown-item text-danger" href="#" onclick="clearData()">Clear All Data</a></li>
+          </ul>
         </div>
+      </div>
     </div>
-</div>
+  </nav>
 
-<!-- Breakdown Notification -->
-<div class="notification" id="notification">
-    <p><strong>Booking confirmed!</strong></p>
-    <p>Details are saved and a £50 deposit was added to the tab.</p>
-</div>
+  <div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="text-white">Bookings</h3>
+      <input type="date" id="dateSelector" class="form-control w-auto" />
+    </div>
+    <div id="roomContainer" class="d-flex flex-wrap justify-content-start"></div>
+    <div class="text-end mt-4">
+      <button class="btn btn-primary btn-rounded" data-bs-toggle="modal" data-bs-target="#bookingModal">Create Booking</button>
+    </div>
+  </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-<script>
-    let bookings = [];
-    let availableRooms = ["101", "102", "103", "104", "105", "106"];
-    let roomStatus = {
-        "101": "Dirty",
-        "102": "Dirty",
-        "103": "Dirty",
-        "104": "Dirty",
-        "105": "Dirty",
-        "106": "Dirty"
-    };
+  <!-- Modals -->
+  <div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">New Booking</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="guestName" class="form-control mb-2" placeholder="Guest Name">
+          <input type="date" id="arrivalDate" class="form-control mb-2">
+          <input type="date" id="departureDate" class="form-control mb-2">
+          <select id="roomSelect" class="form-select mb-2"></select>
+          <button class="btn btn-sm btn-outline-secondary mb-2" onclick="findRoom()">Find Available Room</button>
+          <div class="form-check">
+            <input type="checkbox" id="addDeposit" class="form-check-input">
+            <label class="form-check-label" for="addDeposit">Add £50 deposit</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-rounded" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success btn-rounded" onclick="confirmBooking()">Confirm Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // Populate available rooms in the form
-    function populateRoomOptions() {
-        const roomSelect = document.getElementById('roomNumber');
-        roomSelect.innerHTML = '';
-        availableRooms.forEach(room => {
-            let option = document.createElement('option');
-            option.value = room;
-            option.innerText = `Room ${room}`;
-            roomSelect.appendChild(option);
-        });
+  <div class="modal fade" id="uiModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title">Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="uiModalContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const rooms = ["101", "102", "103", "104", "105", "106"];
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    let cleanStatus = JSON.parse(localStorage.getItem("cleanStatus")) || Object.fromEntries(rooms.map(r => [r, false]));
+
+    function saveData() {
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+      localStorage.setItem("cleanStatus", JSON.stringify(cleanStatus));
     }
 
-    // Display bookings in table
-    function displayBookings() {
-        const roomBody = document.getElementById('roomBody');
-        roomBody.innerHTML = '';
-        bookings.forEach((booking, index) => {
-            let row = roomBody.insertRow();
-            row.innerHTML = `
-                <td>${booking.roomNumber}</td>
-                <td><span class="badge badge-${roomStatus[booking.roomNumber] === 'Clean' ? 'success' : 'warning'}">${roomStatus[booking.roomNumber]}</span></td>
-                <td>
-                    <button class="btn btn-primary btn-custom" onclick="showBreakdown(${index})">Breakdown</button>
-                    <button class="btn btn-info btn-custom" onclick="showDetails(${index})">Details</button>
-                    <button class="btn btn-success btn-custom" onclick="checkIn(${index})">Check In</button>
-                </td>
-            `;
-        });
+    function renderRooms() {
+      const container = document.getElementById("roomContainer");
+      container.innerHTML = "";
+      const selectedDate = document.getElementById("dateSelector").value;
+
+      rooms.forEach(room => {
+        const booking = bookings.find(b => b.room === room && selectedDate >= b.arrival && selectedDate <= b.departure);
+        const div = document.createElement("div");
+        let status = cleanStatus[room] ? "clean" : "dirty";
+        if (booking?.checkedIn) status = "checkedin";
+
+        div.className = `room-bubble ${status}`;
+        div.innerHTML = `
+          <h5>Room ${room}</h5>
+          ${booking ? `<p>${booking.name}</p>
+          <p>£${booking.total}</p>
+          <button class='btn btn-sm btn-outline-dark' onclick="showDetails('${room}')">Details</button>
+          <button class='btn btn-sm btn-outline-info' onclick="showBreakdown('${room}')">Breakdown</button>
+          ${!booking.checkedIn && selectedDate === booking.arrival ? `<button class='btn btn-sm btn-outline-success mt-2' onclick="checkIn('${room}')">Check In</button>` : ""}
+          ${booking.checkedIn && selectedDate === booking.departure ? `<button class='btn btn-sm btn-outline-danger mt-2' onclick="checkOut('${room}')">Check Out</button>` : ""}` : `<p>Available</p>`}
+        `;
+        container.appendChild(div);
+      });
     }
 
-    // Show booking details
-    function showDetails(index) {
-        const booking = bookings[index];
-        alert(`Booking details:\nGuest Name: ${booking.guestName}\nRoom Number: ${booking.roomNumber}\nArrival Date: ${booking.arrivalDate}\nDeparture Date: ${booking.departureDate}`);
+    function showDetails(room) {
+      const b = bookings.find(b => b.room === room);
+      if (!b) return;
+      document.getElementById("uiModalContent").innerHTML = `
+        <strong>Name:</strong> ${b.name}<br>
+        <strong>Room:</strong> ${b.room}<br>
+        <strong>Arrival:</strong> ${b.arrival}<br>
+        <strong>Departure:</strong> ${b.departure}<br>
+        <strong>Deposit:</strong> £${b.deposit}<br>
+        <strong>Total:</strong> £${b.total}<br>
+      `;
+      new bootstrap.Modal(document.getElementById("uiModal")).show();
     }
 
-    // Show booking breakdown (costs)
-    function showBreakdown(index) {
-        const booking = bookings[index];
-        const roomCost = 75 * (new Date(booking.departureDate) - new Date(booking.arrivalDate)) / (1000 * 3600 * 24); // Calculate nights
-        const deposit = booking.tab ? 50 : 0;
-        alert(`Booking breakdown:\nGuest Name: ${booking.guestName}\nRoom: ${booking.roomNumber}\nTotal Room Cost: £${roomCost}\nDeposit: £${deposit}\nTotal: £${roomCost + deposit}`);
+    function showBreakdown(room) {
+      const b = bookings.find(b => b.room === room);
+      const nights = (new Date(b.departure) - new Date(b.arrival)) / (1000 * 60 * 60 * 24);
+      const base = 75 * nights;
+      document.getElementById("uiModalContent").innerHTML = `
+        <strong>£75 x ${nights} nights = £${base}</strong><br>
+        <strong>Deposit:</strong> £${b.deposit}<br>
+        <hr><strong>Total: £${b.total}</strong>
+      `;
+      new bootstrap.Modal(document.getElementById("uiModal")).show();
     }
 
-    // Confirm booking
-    document.getElementById('confirmBookingBtn').addEventListener('click', function () {
-        const guestName = document.getElementById('guestName').value;
-        const arrivalDate = document.getElementById('arrivalDate').value;
-        const departureDate = document.getElementById('departureDate').value;
-        const roomNumber = document.getElementById('roomNumber').value;
-        const tab = document.getElementById('tab').checked;
+    function checkIn(room) {
+      const b = bookings.find(b => b.room === room);
+      const deposit = b.total * 0.25;
+      document.getElementById("uiModalContent").innerHTML = `
+        <p>Charge 25% Deposit (£${deposit.toFixed(2)})?</p>
+        <button class='btn btn-success' onclick="confirmCheckIn('${room}', ${deposit})">Confirm</button>
+      `;
+      new bootstrap.Modal(document.getElementById("uiModal")).show();
+    }
 
-        if (!guestName || !arrivalDate || !departureDate || !roomNumber) {
-            alert("Please fill in all fields.");
-            return;
-        }
+    function confirmCheckIn(room, amount) {
+      const b = bookings.find(b => b.room === room);
+      b.checkedIn = true;
+      b.depositPaid = amount;
+      saveData();
+      renderRooms();
+      bootstrap.Modal.getInstance(document.getElementById("uiModal")).hide();
+    }
 
-        const booking = { guestName, arrivalDate, departureDate, roomNumber, tab };
-        bookings.push(booking);
-        roomStatus[roomNumber] = "Booked";
-        displayBookings();
-        document.getElementById('notification').style.display = 'block';
-        setTimeout(() => {
-            document.getElementById('notification').style.display = 'none';
-        }, 3000);
+    function checkOut(room) {
+      const b = bookings.find(b => b.room === room);
+      const remaining = b.total - (b.depositPaid || 0);
+      document.getElementById("uiModalContent").innerHTML = `
+        <p>Remaining balance: £${remaining.toFixed(2)}</p>
+        <button class='btn btn-danger' onclick="confirmCheckOut('${room}')">Confirm Checkout</button>
+      `;
+      new bootstrap.Modal(document.getElementById("uiModal")).show();
+    }
 
-        // Reset the form and close the modal
-        document.getElementById('bookingForm').reset();
-        const modal = bootstrap.Modal.getInstance(document.getElementById('createBookingModal'));
-        modal.hide();
-    });
+    function confirmCheckOut(room) {
+      bookings = bookings.filter(b => b.room !== room);
+      cleanStatus[room] = false;
+      saveData();
+      renderRooms();
+      bootstrap.Modal.getInstance(document.getElementById("uiModal")).hide();
+    }
 
-    // Initialize room options and display bookings
-    populateRoomOptions();
-    displayBookings();
-</script>
+    function showUpcoming() {
+      const upcoming = bookings.map(b => `<li>${b.name} - Room ${b.room} (${b.arrival} to ${b.departure})</li>`).join('');
+      document.getElementById("uiModalContent").innerHTML = `<ul>${upcoming}</ul>`;
+      new bootstrap.Modal(document.getElementById("uiModal")).show();
+    }
+
+    function showHistory() {
+      // For now, just showing same data
+      showUpcoming();
+    }
+
+    function clearData() {
+      localStorage.removeItem("bookings");
+      localStorage.removeItem("cleanStatus");
+      bookings = [];
+      cleanStatus = Object.fromEntries(rooms.map(r => [r, false]));
+      renderRooms();
+    }
+
+    function confirmBooking() {
+      const name = document.getElementById("guestName").value;
+      const arrival = document.getElementById("arrivalDate").value;
+      const departure = document.getElementById("departureDate").value;
+      const room = document.getElementById("roomSelect").value;
+      const deposit = document.getElementById("addDeposit").checked ? 50 : 0;
+      const nights = (new Date(departure) - new Date(arrival)) / (1000 * 60 * 60 * 24);
+      if (nights < 1 || !name || !arrival || !departure || !room) return;
+      const total = nights * 75 + deposit;
+      bookings.push({ name, arrival, departure, room, deposit, total });
+      saveData();
+      bootstrap.Modal.getInstance(document.getElementById("bookingModal")).hide();
+      renderRooms();
+    }
+
+    function findRoom() {
+      const arrival = document.getElementById("arrivalDate").value;
+      const departure = document.getElementById("departureDate").value;
+      const available = rooms.find(r => !bookings.some(b => b.room === r && (arrival <= b.departure && departure >= b.arrival)));
+      if (available) document.getElementById("roomSelect").value = available;
+    }
+
+    function populateRoomSelect() {
+      const sel = document.getElementById("roomSelect");
+      sel.innerHTML = rooms.map(r => `<option value="${r}">${r}</option>`).join('');
+    }
+
+    document.getElementById("dateSelector").value = new Date().toISOString().split('T')[0];
+    document.getElementById("dateSelector").addEventListener("change", renderRooms);
+    populateRoomSelect();
+    renderRooms();
+  </script>
 </body>
 </html>
+
