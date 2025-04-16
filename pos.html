@@ -1,123 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>POS System</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     body {
-      background: linear-gradient(to right, #2193b0, #6dd5ed);
-      color: #222;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .navbar {
-      background-color: #00587a;
-    }
-    .navbar-brand, .nav-link, .navbar-text {
+      background: linear-gradient(to right, #7b2ff7, #f107a3);
       color: #fff;
+      font-family: 'Segoe UI', sans-serif;
     }
-    .pos-container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    .container {
+      padding-top: 40px;
     }
-    .item-btn {
+    .card {
       border-radius: 20px;
-      margin: 5px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    .receipt {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 0.9em;
+    .category {
+      margin-bottom: 30px;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+    }
+    .btn {
+      border-radius: 30px;
+    }
+    .modal-content {
+      background: #fff;
+      color: #000;
+    }
+    .custom-input {
+      background: #fff;
+      color: #000;
     }
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="index.html">Hotel System</a>
-      <div class="d-flex">
-        <a class="btn btn-light me-2" href="index.html">Exit</a>
+  <div class="container">
+    <h2 class="text-center mb-4">Point of Sale</h2>
+    <div class="row">
+      <!-- POS Items -->
+      <div class="col-md-8">
+        <div id="categories"></div>
+
+        <!-- Custom Charge Section -->
+        <div class="card category p-3 mt-4">
+          <h5>Add Custom Charge</h5>
+          <div class="row">
+            <div class="col-md-6">
+              <input id="customLabel" class="form-control custom-input" placeholder="Description (e.g. Room Service)" />
+            </div>
+            <div class="col-md-4">
+              <input id="customPrice" type="number" class="form-control custom-input" placeholder="Amount (£)" />
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" onclick="addCustomCharge()">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cart -->
+      <div class="col-md-4">
+        <div class="card p-3">
+          <h5>Cart</h5>
+          <div id="cartList" class="mb-3"></div>
+          <hr />
+          <h5>Total: £<span id="totalAmount">0.00</span></h5>
+          <button class="btn btn-success w-100 mt-3" onclick="checkout()">Checkout</button>
+        </div>
       </div>
     </div>
-  </nav>
+  </div>
 
-  <div class="pos-container">
-    <h3 class="mb-4">POS Terminal</h3>
-    <div class="row">
-      <div class="col-md-7">
-        <div class="d-flex flex-wrap">
-          <button class="btn btn-primary item-btn" onclick="addItem('Room Service', 25)">Room Service - £25</button>
-          <button class="btn btn-primary item-btn" onclick="addItem('Spa', 40)">Spa - £40</button>
-          <button class="btn btn-primary item-btn" onclick="addItem('Laundry', 15)">Laundry - £15</button>
-          <button class="btn btn-primary item-btn" onclick="addItem('Breakfast', 10)">Breakfast - £10</button>
-          <button class="btn btn-primary item-btn" onclick="addItem('Mini Bar', 8)">Mini Bar - £8</button>
-        </div>
-      </div>
-      <div class="col-md-5">
-        <h5>Receipt</h5>
-        <div class="receipt" id="receipt"></div>
-        <div class="mt-2">
-          <strong>Total: £<span id="totalAmount">0</span></strong>
-        </div>
-        <button class="btn btn-success mt-3" onclick="saveToGuest()">Charge to Room</button>
-        <div class="mt-2 text-success d-none" id="successMessage">Charged to guest room successfully.</div>
+  <!-- Checkout Modal -->
+  <div class="modal fade" id="checkoutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3">
+        <h5>Confirm Checkout</h5>
+        <div id="checkoutItems" class="my-3"></div>
+        <p><strong>Total:</strong> £<span id="checkoutTotal"></span></p>
+        <button class="btn btn-success w-100" onclick="confirmCheckout()">Confirm Payment</button>
       </div>
     </div>
   </div>
 
   <script>
-    let posItems = [];
+    const items = {
+      "Drinks": [
+        { name: "Coke", price: 2.5 },
+        { name: "Coffee", price: 3 },
+        { name: "Tea", price: 2 },
+        { name: "Orange Juice", price: 2.8 }
+      ],
+      "Food": [
+        { name: "Burger", price: 8 },
+        { name: "Pasta", price: 9.5 },
+        { name: "Sandwich", price: 6 },
+        { name: "Salad", price: 7 }
+      ],
+      "Desserts": [
+        { name: "Ice Cream", price: 3.5 },
+        { name: "Cake", price: 4 },
+        { name: "Brownie", price: 3.8 }
+      ]
+    };
 
-    function addItem(name, price) {
-      posItems.push({ name, price });
-      updateReceipt();
-    }
+    let cart = [];
 
-    function updateReceipt() {
-      const receiptDiv = document.getElementById("receipt");
-      receiptDiv.innerHTML = "";
-      let total = 0;
+    function renderItems() {
+      const container = document.getElementById("categories");
+      container.innerHTML = "";
+      for (const category in items) {
+        const card = document.createElement("div");
+        card.className = "card category p-3";
+        const title = document.createElement("h5");
+        title.textContent = category;
+        card.appendChild(title);
 
-      posItems.forEach(item => {
-        const p = document.createElement("p");
-        p.textContent = `${item.name}: £${item.price}`;
-        receiptDiv.appendChild(p);
-        total += item.price;
-      });
+        const row = document.createElement("div");
+        row.className = "row";
 
-      document.getElementById("totalAmount").textContent = total;
-    }
+        items[category].forEach(item => {
+          const col = document.createElement("div");
+          col.className = "col-md-6 mb-2";
+          const btn = document.createElement("button");
+          btn.className = "btn btn-light w-100";
+          btn.textContent = `${item.name} - £${item.price.toFixed(2)}`;
+          btn.onclick = () => addToCart(item.name, item.price);
+          col.appendChild(btn);
+          row.appendChild(col);
+        });
 
-    function saveToGuest() {
-      let guestName = prompt("Enter guest name to charge");
-      if (!guestName) return;
-
-      let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
-      let booking = bookings.find(b => b.name.toLowerCase() === guestName.toLowerCase());
-
-      if (!booking) {
-        alert("Guest not found");
-        return;
+        card.appendChild(row);
+        container.appendChild(card);
       }
-
-      let totalCharge = posItems.reduce((acc, item) => acc + item.price, 0);
-      booking.total += totalCharge;
-      localStorage.setItem("bookings", JSON.stringify(bookings));
-
-      document.getElementById("successMessage").classList.remove("d-none");
-      setTimeout(() => {
-        document.getElementById("successMessage").classList.add("d-none");
-        posItems = [];
-        updateReceipt();
-      }, 2000);
     }
+
+    function addToCart(name, price) {
+      cart.push({ name, price });
+      renderCart();
+    }
+
+    function renderCart() {
+      const list = document.getElementById("cartList");
+      list.innerHTML = "";
+      let total = 0;
+      cart.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "cart-item mb-2";
+        div.innerHTML = `
+          <span>${item.name}</span>
+          <span>£${item.price.toFixed(2)} <button class="btn btn-sm btn-danger ms-2" onclick="removeItem(${index})">x</button></span>
+        `;
+        total += item.price;
+        list.appendChild(div);
+      });
+      document.getElementById("totalAmount").textContent = total.toFixed(2);
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function checkout() {
+      const modal = new bootstrap.Modal(document.getElementById("checkoutModal"));
+      const list = document.getElementById("checkoutItems");
+      list.innerHTML = cart.map(item => `<div class="d-flex justify-content-between"><span>${item.name}</span><span>£${item.price.toFixed(2)}</span></div>`).join('');
+      document.getElementById("checkoutTotal").textContent = cart.reduce((sum, i) => sum + i.price, 0).toFixed(2);
+      modal.show();
+    }
+
+    function confirmCheckout() {
+      // Save to localStorage for integration with hotel system
+      const savedCharges = JSON.parse(localStorage.getItem("posCharges")) || [];
+      savedCharges.push(...cart);
+      localStorage.setItem("posCharges", JSON.stringify(savedCharges));
+      cart = [];
+      renderCart();
+      bootstrap.Modal.getInstance(document.getElementById("checkoutModal")).hide();
+    }
+
+    function addCustomCharge() {
+      const label = document.getElementById("customLabel").value.trim();
+      const price = parseFloat(document.getElementById("customPrice").value);
+      if (!label || isNaN(price) || price <= 0) return;
+      addToCart(label, price);
+      document.getElementById("customLabel").value = '';
+      document.getElementById("customPrice").value = '';
+    }
+
+    renderItems();
+    renderCart();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
