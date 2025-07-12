@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Room Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+    .container {
+      padding: 20px;
+    }
+    .room-info {
+      text-align: left;
+      margin-top: 10px;
+    }
+    .dropdown {
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Room Details</h2>
+
+    <!-- Dropdown for Navigation -->
+    <div class="dropdown">
+      <label for="navigation">Navigate to:</label>
+      <select id="navigation" onchange="navigateToPage(this.value)">
+        <option value="booking.html">Booking Screen</option>
+        <option value="pos.html">POS Screen</option>
+      </select>
+    </div>
+
+    <div id="roomDetails">
+      <h3>Room 101</h3>
+      <p>Check-in: 2025-04-15</p>
+      <p>Check-out: 2025-04-20</p>
+      <p>Number of Guests: 2</p>
+      <p>Tab: £50</p>
+      <h4>Charges</h4>
+      <ul>
+        <li>Room Charge (5 nights): £375</li>
+        <li>POS Charges: £15</li>
+        <li>Total: £440</li>
+      </ul>
+
+      <button onclick="processPayment()">Process Payment</button>
+    </div>
+  </div>
+
+  <script>
+    function navigateToPage(page) {
+      window.location.href = page;
+    }
+
+    function processPayment() {
+      alert("Processing payment for Room 101...");
+      // Implement payment logic
+    }
+  </script>
+
+</body>
+</html>

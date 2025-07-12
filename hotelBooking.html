@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hotel Booking System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .navbar {
+      background-color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .card {
+      margin: 10px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .room-actions button {
+      margin: 3px;
+    }
+    .modal-content {
+      border-radius: 10px;
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1055;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      display: none;
+      min-width: 300px;
+      max-width: 90%;
+    }
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .popup h5 {
+      margin: 0;
+    }
+    .popup-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+<!-- NAV -->
+<nav class="navbar navbar-expand-lg px-3">
+  <div class="container-fluid">
+    <span class="navbar-brand fw-bold text-primary">Hotel Dashboard</span>
+    <input type="date" id="workingDate" class="form-control ms-3" style="max-width: 200px;" onchange="renderBookings()">
+    <div class="d-flex">
+      <button class="btn btn-outline-success me-2" onclick="openCreateBooking()">Create Booking</button>
+      <a href="pos.html" class="btn btn-outline-warning me-2">POS</a>
+      <button class="btn btn-outline-danger" onclick="clearAll()">Admin</button>
+    </div>
+  </div>
+</nav>
+
+<!-- BOOKINGS -->
+<div class="container mt-4">
+  <div class="row" id="bookingsContainer"></div>
+</div>
+
+<!-- CREATE BOOKING MODAL -->
+<div class="modal fade" id="createBookingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Create Booking</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input id="guestName" class="form-control mb-2" placeholder="Guest Name">
+        <input id="arrivalDate" type="date" class="form-control mb-2">
+        <input id="departureDate" type="date" class="form-control mb-2">
+        <select id="roomSelect" class="form-select mb-2">
+          <option value="">Select Room</option>
+          <option>101</option><option>102</option><option>103</option>
+          <option>104</option><option>105</option><option>106</option>
+        </select>
+        <textarea id="bookingNotes" class="form-control mb-2" placeholder="Booking Notes (optional)"></textarea>
+        <button class="btn btn-sm btn-outline-info w-100" onclick="findRoom()">Find Room</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" onclick="createBooking()">Save Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UI POPUP -->
+<div id="uiPopup" class="popup">
+  <div class="popup-header">
+    <h5 id="popupTitle">Title</h5>
+    <button class="popup-close" onclick="closePopup()">×</button>
+  </div>
+  <div id="popupContent"></div>
+</div>
+
+<!-- SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const NIGHTLY_RATE = 75;
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+function saveBookings() {
+  localStorage.setItem("bookings", JSON.stringify(bookings));
+}
+
+function openCreateBooking() {
+  document.getElementById("guestName").value = "";
+  document.getElementById("arrivalDate").value = "";
+  document.getElementById("departureDate").value = "";
+  document.getElementById("roomSelect").value = "";
+  document.getElementById("bookingNotes").value = "";
+  new bootstrap.Modal(document.getElementById("createBookingModal")).show();
+}
+
+function findRoom() {
+  const arrival = document.getElementById("arrivalDate").value;
+  const departure = document.getElementById("departureDate").value;
+  const rooms = ["101", "102", "103", "104", "105", "106"];
+  const available = rooms.find(r => !bookings.some(b =>
+    b.room === r && !(departure <= b.arrival || arrival >= b.departure)
+  ));
+  if (available) {
+    document.getElementById("roomSelect").value = available;
+    showPopup("Room assigned: " + available, "Success");
+  } else {
+    showPopup("No rooms available for selected dates", "Error");
+  }
+}
+
+function createBooking() {
+  const name = document.getElementById("guestName").value;
+  const arrival = document.getElementById("arrivalDate").value;
+  const departure = document.getElementById("departureDate").value;
+  const room = document.getElementById("roomSelect").value;
+  const notes = document.getElementById("bookingNotes").value;
+
+  if (!name || !arrival || !departure || !room) {
+    return showPopup("All fields are required", "Error");
+  }
+
+  const nights = (new Date(departure) - new Date(arrival)) / (1000 * 60 * 60 * 24);
+  const baseCharge = NIGHTLY_RATE * nights;
+
+  bookings.push({
+    name, arrival, departure, room, notes,
+    charges: [{ label: "Room Charges", cost: baseCharge }],
+    total: baseCharge, paid: 0, checkedIn: false
+  });
+
+  saveBookings();
+  bootstrap.Modal.getInstance(document.getElementById("createBookingModal")).hide();
+  renderBookings();
+  showPopup("Booking created successfully", "Success");
+}
+
+function renderBookings() {
+  const container = document.getElementById("bookingsContainer");
+  container.innerHTML = "";
+  const today = document.getElementById("workingDate").value || new Date().toISOString().split("T")[0];
+  bookings.forEach((b, i) => {
+    if (today < b.arrival || today > b.departure) return;
+    const card = document.createElement("div");
+    card.className = "col-md-4";
+    card.innerHTML = `
+      <div class="card p-3">
+        <h5>Room ${b.room}</h5>
+        <p>${b.name}<br><small>${b.arrival} to ${b.departure}</small></p>
+        <div class="room-actions">
+          <button class="btn btn-sm btn-info" onclick="showDetails(${i})">Details</button>
+          <button class="btn btn-sm btn-warning" onclick="showBreakdown(${i})">Breakdown</button>
+          ${b.arrival === today && !b.checkedIn ? `<button class="btn btn-sm btn-success" onclick="checkIn(${i})">Check-In</button>` : ""}
+          ${b.departure === today && b.checkedIn ? `<button class="btn btn-sm btn-danger" onclick="checkOut(${i})">Check-Out</button>` : ""}
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function showDetails(index) {
+  const b = bookings[index];
+  showPopup(`
+    <p><strong>Guest:</strong> ${b.name}</p>
+    <p><strong>Room:</strong> ${b.room}</p>
+    <p><strong>Arrival:</strong> ${b.arrival}</p>
+    <p><strong>Departure:</strong> ${b.departure}</p>
+    <p><strong>Notes:</strong> ${b.notes || "None"}</p>
+  `, "Booking Details");
+}
+
+function showBreakdown(index) {
+  const b = bookings[index];
+  let html = `<ul class="mb-2">`;
+  b.charges.forEach(c => {
+    html += `<li>${c.label}: £${c.cost.toFixed(2)}</li>`;
+  });
+  html += `</ul><p><strong>Paid:</strong> £${b.paid.toFixed(2)}</p><p><strong>To Pay:</strong> £${(b.total - b.paid).toFixed(2)}</p>`;
+  html += `<button class="btn btn-sm btn-success mt-2" onclick="payBooking(${index})">Pay</button>`;
+  showPopup(html, "Breakdown");
+}
+
+function payBooking(index) {
+  const b = bookings[index];
+  const amount = prompt("Enter amount to pay:", (b.total - b.paid).toFixed(2));
+  if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return showPopup("Invalid amount", "Error");
+  b.paid += parseFloat(amount);
+  saveBookings();
+  renderBookings();
+  showPopup(`Paid £${amount}. Remaining: £${(b.total - b.paid).toFixed(2)}`, "Payment Successful");
+}
+
+function checkIn(index) {
+  const b = bookings[index];
+  const deposit = (b.total * 0.25).toFixed(2);
+  showPopup(`
+    <p>Initial payment: £${deposit}</p>
+    <input id="depositInput" type="number" class="form-control" value="${deposit}"/>
+    <button class="btn btn-success mt-2" onclick="confirmCheckIn(${index})">Confirm Payment</button>
+  `, "Check-In");
+}
+
+function confirmCheckIn(index) {
+  const b = bookings[index];
+  const amount = parseFloat(document.getElementById("depositInput").value);
+  if (isNaN(amount)) return;
+  b.paid += amount;
+  b.checkedIn = true;
+  saveBookings();
+  closePopup();
+  renderBookings();
+  generatePrintForm(b, 'checkin');
+}
+
+function checkOut(index) {
+  const b = bookings[index];
+  const remaining = b.total - b.paid;
+  showPopup(`
+    <p>Outstanding Balance: £${remaining.toFixed(2)}</p>
+    <button class="btn btn-success mt-2" onclick="confirmCheckOut(${index})">Confirm Checkout</button>
+  `, "Check-Out");
+}
+
+function confirmCheckOut(index) {
+  const b = bookings[index];
+  b.paid = b.total;
+  generatePrintForm(b, 'checkout');
+  bookings.splice(index, 1);
+  saveBookings();
+  closePopup();
+  renderBookings();
+}
+
+function generatePrintForm(b, type) {
+  const now = new Date().toLocaleDateString();
+  const win = window.open('', '_blank');
+  const header = `
+    <h2>Lu Cleveden Suites</h2>
+    <p>31 Cleveden Road<br>G12 0PH<br>Glasgow, Scotland</p>
+    <hr />
+  `;
+  let body = "";
+  if (type === 'checkin') {
+    body = `
+      <p>Welcome to Lu Cleveden Suites. We are excited to have you. Please review the following information...</p>
+      <p><strong>Name:</strong> ${b.name}<br><strong>Arrival:</strong> ${b.arrival}<br><strong>Departure:</strong> ${b.departure}<br><strong>Room:</strong> ${b.room}</p>
+      <p><strong>Nightly Fee:</strong> £${NIGHTLY_RATE}<br><strong>Nights:</strong> ${(new Date(b.departure) - new Date(b.arrival)) / (1000 * 60 * 60 * 24)}<br><strong>Total Room Fee:</strong> £${b.total.toFixed(2)}</p>
+      <p>Terms & Conditions...</p>
+      <p>Signature: ______________________________</p>
+    `;
+  } else {
+    body = `
+      <p>Please review the charges below, and sign the required fields.</p>
+      <p><strong>Name:</strong> ${b.name}<br><strong>Arrival:</strong> ${b.arrival}<br><strong>Departure:</strong> ${b.departure}<br><strong>Room:</strong> ${b.room}</p>
+      <p><strong>Itemized Charges:</strong></p>
+      <ul>${b.charges.map(c => `<li>${c.label}: £${c.cost.toFixed(2)}</li>`).join('')}</ul>
+      <p>Total: £${b.total.toFixed(2)}</p>
+      <p>Signature: ______________________________</p>
+      <p>Terms Agreement:</p>
+      <ul>
+        <li>☐ I understand if any broken items are found I will be charged.</li>
+        <li>☐ I understand if a charge fails I will be contacted.</li>
+        <li>☐ I understand if a second attempt fails the court will be alerted.</li>
+        <li>☐ I understand if I use hotel services after checkout, the police will be called.</li>
+        <li>☐ I understand I hold no rights to the room after checkout, but any left items will be returned.</li>
+      </ul>
+      <p>Signature: ______________________________</p>
+    `;
+  }
+  win.document.write(`<html><head><title>${type} Form</title></head><body>${header}${body}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+function showPopup(content, title = "Info") {
+  document.getElementById("popupTitle").innerText = title;
+  document.getElementById("popupContent").innerHTML = content;
+  document.getElementById("uiPopup").style.display = "block";
+}
+
+function closePopup() {
+  document.getElementById("uiPopup").style.display = "none";
+}
+
+function clearAll() {
+  if (confirm("Clear ALL bookings?")) {
+    bookings = [];
+    saveBookings();
+    renderBookings();
+    showPopup("All bookings cleared");
+  }
+}
+
+document.getElementById("workingDate").valueAsDate = new Date();
+renderBookings();
+</script>
+</body>
+</html>
+

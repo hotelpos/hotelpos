@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleaning Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        .room-button {
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .green { background-color: green; color: white; }
+        .red { background-color: red; color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="index.html">Exit</a>
+        <a href="hotelBooking.html">Hotel Booking</a>
+        <a href="pos.html">POS</a>
+        <a href="clean.html">Clean</a>
+    </div>
+
+    <div id="cleaningContainer">
+        <button class="room-button red" onclick="toggleCleaning(101)">Room 101</button>
+        <button class="room-button red" onclick="toggleCleaning(102)">Room 102</button>
+        <button class="room-button red" onclick="toggleCleaning(103)">Room 103</button>
+        <button class="room-button red" onclick="toggleCleaning(104)">Room 104</button>
+        <button class="room-button red" onclick="toggleCleaning(105)">Room 105</button>
+        <button class="room-button red" onclick="toggleCleaning(106)">Room 106</button>
+    </div>
+
+    <script>
+        let cleanStatus = {
+            101: 'red',
+            102: 'red',
+            103: 'red',
+            104: 'red',
+            105: 'red',
+            106: 'red'
+        };
+
+        function toggleCleaning(room) {
+            cleanStatus[room] = cleanStatus[room] === 'red' ? 'green' : 'red';
+            document.querySelectorAll('.room-button').forEach(button => {
+                if (button.textContent.includes(room)) {
+                    button.classList.remove('red', 'green');
+                    button.classList.add(cleanStatus[room]);
+                }
+            });
+            alert(`Room ${room} cleaning status updated to ${cleanStatus[room]}`);
+        }
+    </script>
+
+</body>
+</html>
